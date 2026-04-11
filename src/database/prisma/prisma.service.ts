@@ -1,26 +1,30 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
+import { PrismaClient } from '../../../generated/prisma/client';
 
 @Injectable()
 export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
+  private readonly logger = new Logger(PrismaService.name);
+
   constructor() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       log: ['warn', 'error'],
     });
   }
 
-  onModuleInit() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    return this.$connect();
+  async onModuleInit() {
+    await this.$connect();
+    this.logger.log('Database connection established successfully');
   }
 
   onModuleDestroy() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     return this.$disconnect();
   }
 }
