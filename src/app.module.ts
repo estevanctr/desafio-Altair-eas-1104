@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaService } from './database/prisma/prisma.service';
 import { validateEnv } from './env';
+import { AuthModule } from './modules/auth/auth.module';
 import { UpdateProcessesSchedulerModule } from './modules/update-processes-scheduler/update-processes-scheduler.module';
 import { UserModule } from './modules/user/user.module';
 
@@ -12,6 +13,7 @@ import { UserModule } from './modules/user/user.module';
     ScheduleModule.forRoot(),
     UpdateProcessesSchedulerModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [PrismaService],

@@ -1,5 +1,13 @@
-import { Body, Controller, HttpCode, Param, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Param,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { JwtAuthGuard } from '../../auth/configs/jwt-auth.guard';
 import {
   UpdateUserPasswordBodySchema,
   UpdateUserPasswordRequestDto,
@@ -8,6 +16,7 @@ import type { UpdateUserPasswordResponseDto } from '../dtos/update-user-password
 import { UpdateUserPasswordUseCase } from '../use-cases/update-user-password-usecase';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UpdateUserPasswordController {
   constructor(
     private readonly updateUserPasswordUseCase: UpdateUserPasswordUseCase,
