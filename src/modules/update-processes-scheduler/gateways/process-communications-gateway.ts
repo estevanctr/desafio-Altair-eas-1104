@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Env } from '../../../env';
 import { ProcessCommunicationAdapter } from '../adapters/process-communication.adapter';
 import { ProcessApiItem } from '../types/process-api-item.type';
 import { ProcessSyncInput } from '../types/process-sync-input.type';
@@ -7,7 +9,6 @@ import {
   IProcessCommunicationsGateway,
 } from './contracts/process-communications-gateway';
 
-const BASE_URL = 'https://comunicaapi.pje.jus.br/api/v1/comunicacao';
 const ITEMS_PER_PAGE = 100;
 const DELAY_BETWEEN_PAGES_MS = 1000;
 const RATE_LIMIT_COOLDOWN_MS = 60_000;
@@ -30,6 +31,13 @@ type AttemptResult =
 @Injectable()
 export class ProcessCommunicationsGateway implements IProcessCommunicationsGateway {
   private readonly logger = new Logger(ProcessCommunicationsGateway.name);
+  private readonly baseUrl: string;
+
+  constructor(configService: ConfigService<Env, true>) {
+    this.baseUrl = configService.get('PROCESS_COMMUNICATIONS_API_URL', {
+      infer: true,
+    });
+  }
 
   async *streamCommunications(
     params: FetchCommunicationsParams,
@@ -69,7 +77,7 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
       itensPorPagina: String(ITEMS_PER_PAGE),
     });
 
-    const url = `${BASE_URL}?${query.toString()}`;
+    const url = `${this.baseUrl}?${query.toString()}`;
     const target = `${params.siglaTribunal}/${params.orgaoId} page ${page}`;
 
     let rateLimitAttempts = 0;

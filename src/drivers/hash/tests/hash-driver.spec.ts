@@ -1,11 +1,16 @@
+import { ConfigService } from '@nestjs/config';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { Env } from '../../../env';
 import { HashDriver } from '../hash-driver';
 
 describe('HashDriver', () => {
   let hashDriver: HashDriver;
 
   beforeEach(() => {
-    hashDriver = new HashDriver();
+    const configService = {
+      get: () => 4,
+    } as unknown as ConfigService<Env, true>;
+    hashDriver = new HashDriver(configService);
   });
 
   describe('hash', () => {
