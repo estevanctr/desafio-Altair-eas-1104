@@ -31,19 +31,9 @@ type AttemptResult =
 export class ProcessCommunicationsGateway implements IProcessCommunicationsGateway {
   private readonly logger = new Logger(ProcessCommunicationsGateway.name);
 
-  async fetchAllCommunications(
+  async *streamCommunications(
     params: FetchCommunicationsParams,
-  ): Promise<ProcessSyncInput[]> {
-    const rawItems = await this.fetchAllRawItems(params);
-    return rawItems.map((item) =>
-      ProcessCommunicationAdapter.toSyncInput(item),
-    );
-  }
-
-  private async fetchAllRawItems(
-    params: FetchCommunicationsParams,
-  ): Promise<ProcessApiItem[]> {
-    const results: ProcessApiItem[] = [];
+  ): AsyncGenerator<ProcessSyncInput[]> {
     let page = 1;
 
     while (true) {
@@ -54,7 +44,7 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
       const { items, count } = await this.fetchPage(params, page);
       if (items.length === 0) break;
 
-      results.push(...items);
+      yield items.map((item) => ProcessCommunicationAdapter.toSyncInput(item));
 
       if (count !== null) {
         if (page * ITEMS_PER_PAGE >= count) break;
@@ -64,8 +54,6 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
 
       page += 1;
     }
-
-    return results;
   }
 
   private async fetchPage(

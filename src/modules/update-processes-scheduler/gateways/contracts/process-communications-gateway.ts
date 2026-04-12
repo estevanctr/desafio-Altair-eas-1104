@@ -8,7 +8,7 @@ export type FetchCommunicationsParams = {
 };
 
 export interface IProcessCommunicationsGateway {
-  fetchAllCommunications(
+  streamCommunications(
     params: FetchCommunicationsParams,
-  ): Promise<ProcessSyncInput[]>;
+  ): AsyncIterable<ProcessSyncInput[]>;
 }

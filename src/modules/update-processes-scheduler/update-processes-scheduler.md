@@ -22,7 +22,7 @@ The module follows a layered architecture with dependency inversion via Nest tok
 │    Orchestrates the flow per organ, aggregates metrics     │
 └─────────┬──────────────────────────────────┬────────────────┘
           │                                  │
-          │ fetchAllCommunications            │ persistCommunication
+          │ streamCommunications              │ persistCommunication
           ▼                                  ▼
 ┌────────────────────────────┐   ┌────────────────────────────┐
 │ ProcessCommunicationsGateway│   │   ProcessSyncRepository    │
@@ -68,7 +68,7 @@ To monitor a new organ, just add an entry to this array.
 
 2. **Per-organ orchestration** — The use case resolves its own `referenceDate` internally via `getYesterdayIsoDate()` (UTC), initializes an empty `UpdateProcessesSummary` and iterates over `SCHEDULED_ORGAN_QUERIES`. Each organ is processed in isolation through `processOrgan`: if one organ fails, the others keep running and the error is recorded in that organ's summary entry.
 
-3. **Paginated API fetch** — `ProcessCommunicationsGateway.fetchAllCommunications` builds the query with `siglaTribunal`, `orgaoId` and the `dataDisponibilizacaoInicio/Fim` window and paginates 100 items at a time (`ITEMS_PER_PAGE`). Between pages the gateway waits `DELAY_BETWEEN_PAGES_MS` (1s) to proactively avoid 429s. Each request goes through `requestWithTimeout`, which aborts after `REQUEST_TIMEOUT_MS` (30s) via `AbortController`, preventing the job from hanging on a stuck connection. The retry policy per page has two independent budgets:
+3. **Paginated API fetch** — `ProcessCommunicationsGateway.streamCommunications` is an async generator that builds the query with `siglaTribunal`, `orgaoId` and the `dataDisponibilizacaoInicio/Fim` window and yields one batch per page (100 items at a time, `ITEMS_PER_PAGE`). The use case consumes each batch as it arrives, so memory stays bounded to a single page regardless of total volume. Between pages the gateway waits `DELAY_BETWEEN_PAGES_MS` (1s) to proactively avoid 429s. Each request goes through `requestWithTimeout`, which aborts after `REQUEST_TIMEOUT_MS` (30s) via `AbortController`, preventing the job from hanging on a stuck connection. The retry policy per page has two independent budgets:
    - **Rate limit (`429`)** — on hit, logs a warning, sleeps `RATE_LIMIT_COOLDOWN_MS` (60s) and retries the same page up to `MAX_RATE_LIMIT_RETRIES` (3) times before giving up.
    - **Transient failures (`5xx` status, network errors, timeouts)** — retries with an exponential backoff schedule `SERVER_ERROR_BACKOFF_MS` (2s → 4s → 8s), up to `MAX_SERVER_ERROR_RETRIES` (3) times.
 

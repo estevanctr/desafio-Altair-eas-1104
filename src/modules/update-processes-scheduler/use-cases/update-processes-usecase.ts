@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { IProcessCommunicationsGateway } from '../gateways/contracts/process-communications-gateway';
 import type { IProcessSyncRepository } from '../repository/contracts/process-sync-repository';
+import type { ProcessSyncInput } from '../types/process-sync-input.type';
 import {
   SCHEDULED_ORGAN_QUERIES,
   ScheduledOrganQuery,
@@ -67,64 +68,74 @@ export class UpdateProcessesUseCase {
     query: ScheduledOrganQuery,
     referenceDate: string,
   ): Promise<UpdateProcessesSummary['perOrgan'][number]> {
+    let fetched = 0;
+    let created = 0;
+    let skipped = 0;
+    let failed = 0;
+    let error: string | undefined;
+
     try {
-      const items =
-        await this.processCommunicationsGateway.fetchAllCommunications({
-          siglaTribunal: query.siglaTribunal,
-          orgaoId: query.orgaoId,
-          dataDisponibilizacaoInicio: referenceDate,
-          dataDisponibilizacaoFim: referenceDate,
-        });
+      const batches = this.processCommunicationsGateway.streamCommunications({
+        siglaTribunal: query.siglaTribunal,
+        orgaoId: query.orgaoId,
+        dataDisponibilizacaoInicio: referenceDate,
+        dataDisponibilizacaoFim: referenceDate,
+      });
 
-      let created = 0;
-      let skipped = 0;
-      let failed = 0;
-
-      for (const item of items) {
-        try {
-          const result =
-            await this.processSyncRepository.persistCommunication(item);
-          if (result.created) created += 1;
-          else skipped += 1;
-        } catch (error) {
-          failed += 1;
-          const message =
-            error instanceof Error ? error.message : String(error);
-          this.logger.error(
-            `[update-processes] failed to persist externalId=${item.communication.externalId} for ${query.siglaTribunal}/${query.orgaoId}: ${message}`,
-          );
-        }
+      for await (const batch of batches) {
+        const batchInfos = await this.persistBatch(batch, query);
+        fetched += batch.length;
+        created += batchInfos.created;
+        skipped += batchInfos.skipped;
+        failed += batchInfos.failed;
       }
-
-      this.logger.log(
-        `[update-processes] ${query.label} (${query.siglaTribunal}/${query.orgaoId}) fetched=${items.length} created=${created} skipped=${skipped} failed=${failed}`,
-      );
-
-      return {
-        label: query.label,
-        siglaTribunal: query.siglaTribunal,
-        orgaoId: query.orgaoId,
-        fetched: items.length,
-        created,
-        skipped,
-        failed,
-      };
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const finalError = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `[update-processes] failed for ${query.siglaTribunal}/${query.orgaoId}: ${message}`,
+        `[update-processes] failed for ${query.siglaTribunal}/${query.orgaoId}: ${finalError}`,
       );
-      return {
-        label: query.label,
-        siglaTribunal: query.siglaTribunal,
-        orgaoId: query.orgaoId,
-        fetched: 0,
-        created: 0,
-        skipped: 0,
-        failed: 0,
-        error: message,
-      };
     }
+
+    this.logger.log(
+      `[update-processes] ${query.label} (${query.siglaTribunal}/${query.orgaoId}) fetched=${fetched} created=${created} skipped=${skipped} failed=${failed}`,
+    );
+
+    return {
+      label: query.label,
+      siglaTribunal: query.siglaTribunal,
+      orgaoId: query.orgaoId,
+      fetched,
+      created,
+      skipped,
+      failed,
+      ...(error !== undefined && { error }),
+    };
+  }
+
+  private async persistBatch(
+    batch: ProcessSyncInput[],
+    query: ScheduledOrganQuery,
+  ): Promise<{ created: number; skipped: number; failed: number }> {
+    let created = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const item of batch) {
+      try {
+        const result =
+          await this.processSyncRepository.persistCommunication(item);
+        if (result.created) created += 1;
+        else skipped += 1;
+      } catch (error) {
+        failed += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.error(
+          `[update-processes] failed to persist externalId=${item.communication.externalId} for ${query.siglaTribunal}/${query.orgaoId}: ${message}`,
+        );
+      }
+    }
+
+    return { created, skipped, failed };
   }
 
   private getYesterdayIsoDate(): string {
