@@ -12,11 +12,20 @@ const ITEMS_PER_PAGE = 100;
 const DELAY_BETWEEN_PAGES_MS = 1000;
 const RATE_LIMIT_COOLDOWN_MS = 60_000;
 const MAX_RATE_LIMIT_RETRIES = 3;
+const REQUEST_TIMEOUT_MS = 30_000;
+const MAX_TRANSIENT_RETRIES = 3;
+const TRANSIENT_BACKOFF_MS = [2_000, 4_000, 8_000];
 
 type FetchPageResult = {
   items: ProcessApiItem[];
   count: number | null;
 };
+
+type AttemptResult =
+  | { kind: 'success'; response: Response }
+  | { kind: 'retry-rate-limit' }
+  | { kind: 'retry-network'; reason: string }
+  | { kind: 'retry-server'; status: number; body: string };
 
 @Injectable()
 export class ProcessCommunicationsGateway implements IProcessCommunicationsGateway {
@@ -73,52 +82,140 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
     });
 
     const url = `${BASE_URL}?${query.toString()}`;
+    const target = `${params.siglaTribunal}/${params.orgaoId} page ${page}`;
 
-    for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      });
+    let rateLimitAttempts = 0;
+    let networkAttempts = 0;
+    let serverErrorAttempts = 0;
 
-      if (response.status === 429) {
-        if (attempt === MAX_RATE_LIMIT_RETRIES) {
+    while (true) {
+      const result = await this.attemptOnce(url, target);
+
+      if (result.kind === 'success') {
+        return this.parsePayload(result.response);
+      }
+
+      if (result.kind === 'retry-rate-limit') {
+        if (rateLimitAttempts >= MAX_RATE_LIMIT_RETRIES) {
           throw new Error(
-            `Rate limit retries exhausted after ${MAX_RATE_LIMIT_RETRIES} attempts for ${params.siglaTribunal}/${params.orgaoId} page ${page}`,
+            `Rate limit retries exhausted after ${MAX_RATE_LIMIT_RETRIES} attempts for ${target}`,
           );
         }
         this.logger.warn(
-          `Rate limit hit for ${params.siglaTribunal}/${params.orgaoId} page ${page}. Waiting ${RATE_LIMIT_COOLDOWN_MS}ms before retry ${attempt + 1}/${MAX_RATE_LIMIT_RETRIES}`,
+          `Rate limit hit for ${target}. Waiting ${RATE_LIMIT_COOLDOWN_MS}ms before retry ${rateLimitAttempts + 1}/${MAX_RATE_LIMIT_RETRIES}`,
         );
         await this.sleep(RATE_LIMIT_COOLDOWN_MS);
+        rateLimitAttempts += 1;
         continue;
       }
 
-      if (!response.ok) {
-        const body = await response.text().catch(() => '');
-        this.logger.error(
-          `Process communications API request failed (${response.status}) for ${params.siglaTribunal}/${params.orgaoId} page ${page}: ${body}`,
+      if (result.kind === 'retry-network') {
+        networkAttempts = await this.waitForTransientRetry(
+          networkAttempts,
+          target,
+          result.reason,
         );
-        throw new Error(
-          `Process communications API request failed with status ${response.status}`,
-        );
+        continue;
       }
 
-      const payload = (await response.json()) as
-        | ProcessApiItem[]
-        | { items?: ProcessApiItem[]; count?: number };
+      serverErrorAttempts = await this.waitForTransientRetry(
+        serverErrorAttempts,
+        target,
+        `server error ${result.status}${result.body ? `: ${result.body}` : ''}`,
+        () =>
+          this.logger.error(
+            `Server error retries exhausted (${result.status}) for ${target}: ${result.body}`,
+          ),
+      );
+    }
+  }
 
-      if (Array.isArray(payload)) {
-        return { items: payload, count: null };
-      }
-      return {
-        items: payload.items ?? [],
-        count: typeof payload.count === 'number' ? payload.count : null,
-      };
+  private async attemptOnce(
+    url: string,
+    target: string,
+  ): Promise<AttemptResult> {
+    let response: Response;
+    try {
+      response = await this.requestWithTimeout(url);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const isAbort =
+        error instanceof Error &&
+        (error.name === 'AbortError' || message.includes('aborted'));
+      const reason = isAbort
+        ? `timeout after ${REQUEST_TIMEOUT_MS}ms`
+        : `network error: ${message}`;
+      return { kind: 'retry-network', reason };
     }
 
-    throw new Error(
-      `Unreachable: fetchPage retry loop exited without result for ${params.siglaTribunal}/${params.orgaoId} page ${page}`,
+    if (response.status === 429) {
+      return { kind: 'retry-rate-limit' };
+    }
+
+    if (response.status >= 500 && response.status <= 599) {
+      const body = await response.text().catch(() => '');
+      return { kind: 'retry-server', status: response.status, body };
+    }
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      this.logger.error(
+        `Process communications API request failed (${response.status}) for ${target}: ${body}`,
+      );
+      throw new Error(
+        `Process communications API request failed with status ${response.status}`,
+      );
+    }
+
+    return { kind: 'success', response };
+  }
+
+  private async parsePayload(response: Response): Promise<FetchPageResult> {
+    const payload = (await response.json()) as
+      | ProcessApiItem[]
+      | { items?: ProcessApiItem[]; count?: number };
+
+    if (Array.isArray(payload)) {
+      return { items: payload, count: null };
+    }
+    return {
+      items: payload.items ?? [],
+      count: typeof payload.count === 'number' ? payload.count : null,
+    };
+  }
+
+  private async waitForTransientRetry(
+    attempts: number,
+    target: string,
+    reason: string,
+    onExhausted?: () => void,
+  ): Promise<number> {
+    if (attempts >= MAX_TRANSIENT_RETRIES) {
+      onExhausted?.();
+      throw new Error(
+        `Transient failure retries exhausted for ${target} (${reason})`,
+      );
+    }
+    const backoff = TRANSIENT_BACKOFF_MS[attempts];
+    this.logger.warn(
+      `Transient failure for ${target} (${reason}). Retrying in ${backoff}ms (${attempts + 1}/${MAX_TRANSIENT_RETRIES})`,
     );
+    await this.sleep(backoff);
+    return attempts + 1;
+  }
+
+  private async requestWithTimeout(url: string): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      return await fetch(url, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   private sleep(ms: number): Promise<void> {
