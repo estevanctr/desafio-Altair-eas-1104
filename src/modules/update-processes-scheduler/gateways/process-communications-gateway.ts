@@ -9,6 +9,14 @@ import {
 
 const BASE_URL = 'https://comunicaapi.pje.jus.br/api/v1/comunicacao';
 const ITEMS_PER_PAGE = 100;
+const DELAY_BETWEEN_PAGES_MS = 1000;
+const RATE_LIMIT_COOLDOWN_MS = 60_000;
+const MAX_RATE_LIMIT_RETRIES = 3;
+
+type FetchPageResult = {
+  items: ProcessApiItem[];
+  count: number | null;
+};
 
 @Injectable()
 export class ProcessCommunicationsGateway implements IProcessCommunicationsGateway {
@@ -30,12 +38,21 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
     let page = 1;
 
     while (true) {
-      const pageItems = await this.fetchPage(params, page);
-      if (pageItems.length === 0) break;
+      if (page > 1) {
+        await this.sleep(DELAY_BETWEEN_PAGES_MS);
+      }
 
-      results.push(...pageItems);
+      const { items, count } = await this.fetchPage(params, page);
+      if (items.length === 0) break;
 
-      if (pageItems.length < ITEMS_PER_PAGE) break;
+      results.push(...items);
+
+      if (count !== null) {
+        if (page * ITEMS_PER_PAGE >= count) break;
+      } else if (items.length < ITEMS_PER_PAGE) {
+        break;
+      }
+
       page += 1;
     }
 
@@ -45,7 +62,7 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
   private async fetchPage(
     params: FetchCommunicationsParams,
     page: number,
-  ): Promise<ProcessApiItem[]> {
+  ): Promise<FetchPageResult> {
     const query = new URLSearchParams({
       siglaTribunal: params.siglaTribunal,
       orgaoId: String(params.orgaoId),
@@ -56,26 +73,55 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
     });
 
     const url = `${BASE_URL}?${query.toString()}`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-    });
 
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      this.logger.error(
-        `Process communications API request failed (${response.status}) for ${params.siglaTribunal}/${params.orgaoId} page ${page}: ${body}`,
-      );
-      throw new Error(
-        `Process communications API request failed with status ${response.status}`,
-      );
+    for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      });
+
+      if (response.status === 429) {
+        if (attempt === MAX_RATE_LIMIT_RETRIES) {
+          throw new Error(
+            `Rate limit retries exhausted after ${MAX_RATE_LIMIT_RETRIES} attempts for ${params.siglaTribunal}/${params.orgaoId} page ${page}`,
+          );
+        }
+        this.logger.warn(
+          `Rate limit hit for ${params.siglaTribunal}/${params.orgaoId} page ${page}. Waiting ${RATE_LIMIT_COOLDOWN_MS}ms before retry ${attempt + 1}/${MAX_RATE_LIMIT_RETRIES}`,
+        );
+        await this.sleep(RATE_LIMIT_COOLDOWN_MS);
+        continue;
+      }
+
+      if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        this.logger.error(
+          `Process communications API request failed (${response.status}) for ${params.siglaTribunal}/${params.orgaoId} page ${page}: ${body}`,
+        );
+        throw new Error(
+          `Process communications API request failed with status ${response.status}`,
+        );
+      }
+
+      const payload = (await response.json()) as
+        | ProcessApiItem[]
+        | { items?: ProcessApiItem[]; count?: number };
+
+      if (Array.isArray(payload)) {
+        return { items: payload, count: null };
+      }
+      return {
+        items: payload.items ?? [],
+        count: typeof payload.count === 'number' ? payload.count : null,
+      };
     }
 
-    const payload = (await response.json()) as
-      | ProcessApiItem[]
-      | { items?: ProcessApiItem[] };
+    throw new Error(
+      `Unreachable: fetchPage retry loop exited without result for ${params.siglaTribunal}/${params.orgaoId} page ${page}`,
+    );
+  }
 
-    if (Array.isArray(payload)) return payload;
-    return payload.items ?? [];
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

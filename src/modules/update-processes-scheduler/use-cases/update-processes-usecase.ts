@@ -11,6 +11,7 @@ export type UpdateProcessesSummary = {
   totalFetched: number;
   totalCreated: number;
   totalSkipped: number;
+  totalFailed: number;
   perOrgan: Array<{
     label: string;
     siglaTribunal: string;
@@ -18,6 +19,7 @@ export type UpdateProcessesSummary = {
     fetched: number;
     created: number;
     skipped: number;
+    failed: number;
     error?: string;
   }>;
 };
@@ -41,6 +43,7 @@ export class UpdateProcessesUseCase {
       totalFetched: 0,
       totalCreated: 0,
       totalSkipped: 0,
+      totalFailed: 0,
       perOrgan: [],
     };
 
@@ -50,10 +53,11 @@ export class UpdateProcessesUseCase {
       summary.totalFetched += organSummary.fetched;
       summary.totalCreated += organSummary.created;
       summary.totalSkipped += organSummary.skipped;
+      summary.totalFailed += organSummary.failed;
     }
 
     this.logger.log(
-      `[update-processes] date=${referenceDate} fetched=${summary.totalFetched} created=${summary.totalCreated} skipped=${summary.totalSkipped}`,
+      `[update-processes] date=${referenceDate} fetched=${summary.totalFetched} created=${summary.totalCreated} skipped=${summary.totalSkipped} failed=${summary.totalFailed}`,
     );
 
     return summary;
@@ -74,16 +78,26 @@ export class UpdateProcessesUseCase {
 
       let created = 0;
       let skipped = 0;
+      let failed = 0;
 
       for (const item of items) {
-        const result =
-          await this.processSyncRepository.persistCommunication(item);
-        if (result.created) created += 1;
-        else skipped += 1;
+        try {
+          const result =
+            await this.processSyncRepository.persistCommunication(item);
+          if (result.created) created += 1;
+          else skipped += 1;
+        } catch (error) {
+          failed += 1;
+          const message =
+            error instanceof Error ? error.message : String(error);
+          this.logger.error(
+            `[update-processes] failed to persist externalId=${item.communication.externalId} for ${query.siglaTribunal}/${query.orgaoId}: ${message}`,
+          );
+        }
       }
 
       this.logger.log(
-        `[update-processes] ${query.label} (${query.siglaTribunal}/${query.orgaoId}) fetched=${items.length} created=${created} skipped=${skipped}`,
+        `[update-processes] ${query.label} (${query.siglaTribunal}/${query.orgaoId}) fetched=${items.length} created=${created} skipped=${skipped} failed=${failed}`,
       );
 
       return {
@@ -93,6 +107,7 @@ export class UpdateProcessesUseCase {
         fetched: items.length,
         created,
         skipped,
+        failed,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -106,6 +121,7 @@ export class UpdateProcessesUseCase {
         fetched: 0,
         created: 0,
         skipped: 0,
+        failed: 0,
         error: message,
       };
     }

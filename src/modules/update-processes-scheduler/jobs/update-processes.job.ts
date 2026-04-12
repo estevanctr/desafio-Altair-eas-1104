@@ -19,7 +19,7 @@ export class UpdateProcessesJob {
       const summary = await this.updateProcessesUseCase.execute();
       const durationMs = Date.now() - startedAt;
       this.logger.log(
-        `[update-processes] cron finished in ${durationMs}ms — fetched=${summary.totalFetched} created=${summary.totalCreated} skipped=${summary.totalSkipped}`,
+        `[update-processes] cron finished in ${durationMs}ms — fetched=${summary.totalFetched} created=${summary.totalCreated} skipped=${summary.totalSkipped} failed=${summary.totalFailed}`,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
