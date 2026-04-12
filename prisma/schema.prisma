@@ -6,6 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 
@@ -48,7 +49,7 @@ model Communication {
   aiSummary         String?  @db.Text
 
   processId         String
-  process           Process  @relation(fields: [processId], references: [id])
+  process           Process  @relation(fields: [processId], references: [id], onDelete: Cascade)
   recipients        Recipient[]
 
   createdAt         DateTime @default(now())
@@ -69,7 +70,7 @@ model Recipient {
   isLawyer        Boolean @default(false)
 
   communicationId String
-  communication   Communication @relation(fields: [communicationId], references: [id])
+  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
 
   @@map("recipients")
 }
