@@ -1,4 +1,11 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtAuthGuard } from '../../auth/configs/jwt-auth.guard';
 import {
@@ -6,14 +13,20 @@ import {
   ListProcessesRequestDto,
 } from '../dtos/list-processes-request-dto';
 import type { ListProcessesResponseDto } from '../dtos/list-processes-response-dto';
+import { ListProcessesResponseSchema } from '../dtos/list-processes-response-dto';
 import { ListProcessesUseCase } from '../use-cases/list-processes-usecase';
 
+@ApiTags('Processes')
+@ApiBearerAuth()
 @Controller('processes')
 export class ListProcessesController {
   constructor(private readonly listProcessesUseCase: ListProcessesUseCase) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'List processes with their latest communication' })
+  @ApiOkResponse({ type: ListProcessesResponseSchema })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async handle(
     @Query(new ZodValidationPipe(ListProcessesQuerySchema))
     query: ListProcessesRequestDto,

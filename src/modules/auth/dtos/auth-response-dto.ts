@@ -1,3 +1,5 @@
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 import type { UserType } from '../../user/types/user-type';
 
 export interface AuthResponseDto {
@@ -21,3 +23,14 @@ export const AuthResponseDto = {
     };
   },
 };
+
+export class AuthResponseSchema extends createZodDto(
+  z.object({
+    accessToken: z.string(),
+    user: z.object({
+      id: z.uuid(),
+      name: z.string(),
+      email: z.email(),
+    }),
+  }),
+) {}

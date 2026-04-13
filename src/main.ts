@@ -1,11 +1,26 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module';
 import { Env } from './env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get<ConfigService<Env, true>>(ConfigService);
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Processes API')
+    .setDescription(
+      'API for managing judicial processes and their communications',
+    )
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, cleanupOpenApiDoc(document));
+
   await app.listen(configService.get('PORT', { infer: true }));
 }
 bootstrap();

@@ -1,3 +1,6 @@
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+
 export interface UpdateUserPasswordResponseDto {
   id: string;
   updatedAt: Date;
@@ -14,3 +17,10 @@ export const UpdateUserPasswordResponseDto = {
     };
   },
 };
+
+export class UpdateUserPasswordResponseSchema extends createZodDto(
+  z.object({
+    id: z.uuid(),
+    updatedAt: z.iso.datetime(),
+  }),
+) {}

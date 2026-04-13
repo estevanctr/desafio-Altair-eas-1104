@@ -6,6 +6,14 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtAuthGuard } from '../../auth/configs/jwt-auth.guard';
 import {
@@ -13,8 +21,11 @@ import {
   UpdateUserPasswordRequestDto,
 } from '../dtos/update-user-password-request-dto';
 import type { UpdateUserPasswordResponseDto } from '../dtos/update-user-password-response-dto';
+import { UpdateUserPasswordResponseSchema } from '../dtos/update-user-password-response-dto';
 import { UpdateUserPasswordUseCase } from '../use-cases/update-user-password-usecase';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UpdateUserPasswordController {
@@ -24,6 +35,10 @@ export class UpdateUserPasswordController {
 
   @Patch(':id/password')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Update user password' })
+  @ApiOkResponse({ type: UpdateUserPasswordResponseSchema })
+  @ApiUnauthorizedResponse({ description: 'Invalid current password' })
+  @ApiNotFoundResponse({ description: 'User not found' })
   async handle(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(UpdateUserPasswordBodySchema))

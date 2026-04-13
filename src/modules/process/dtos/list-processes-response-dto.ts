@@ -1,3 +1,5 @@
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 import type { PaginatedResult } from '../repository/contracts/process-repository';
 import type { ProcessWithLatestCommunicationType } from '../types/process-with-latest-communication-type';
 
@@ -51,3 +53,29 @@ export const ListProcessesResponseDto = {
     };
   },
 };
+
+const latestCommunicationSchema = z.object({
+  communicationType: z.string(),
+  publicationDate: z.iso.datetime(),
+  content: z.string(),
+  aiSummary: z.string().nullable(),
+  recipients: z.array(z.string()),
+});
+
+const processItemSchema = z.object({
+  id: z.uuid(),
+  processNumber: z.string(),
+  courtAcronym: z.string(),
+  organName: z.string(),
+  latestCommunication: latestCommunicationSchema,
+});
+
+export class ListProcessesResponseSchema extends createZodDto(
+  z.object({
+    items: z.array(processItemSchema),
+    total: z.number().int(),
+    page: z.number().int(),
+    pageSize: z.number().int(),
+    totalPages: z.number().int(),
+  }),
+) {}

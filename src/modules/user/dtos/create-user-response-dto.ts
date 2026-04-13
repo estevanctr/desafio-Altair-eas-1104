@@ -1,3 +1,5 @@
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 import type { UserType } from '../types/user-type';
 
 export interface CreateUserResponseDto {
@@ -17,3 +19,12 @@ export const CreateUserResponseDto = {
     };
   },
 };
+
+export class CreateUserResponseSchema extends createZodDto(
+  z.object({
+    id: z.uuid(),
+    name: z.string(),
+    email: z.email(),
+    createdAt: z.iso.datetime(),
+  }),
+) {}
