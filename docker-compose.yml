@@ -22,6 +22,12 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       PORT: 3000
+      NODE_ENV: ${NODE_ENV}
+      HASH_SALT_ROUNDS: ${HASH_SALT_ROUNDS}
+      PROCESS_COMMUNICATIONS_API_URL: ${PROCESS_COMMUNICATIONS_API_URL}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_ACCESS_TOKEN_EXPIRES_IN: ${JWT_ACCESS_TOKEN_EXPIRES_IN}
     depends_on:
       postgres:
         condition: service_healthy

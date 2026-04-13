@@ -20,6 +20,7 @@ COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/package.json ./
 COPY --from=base /app/prisma ./prisma
 COPY --from=base /app/prisma.config.ts ./
+COPY --from=base /app/generated ./generated
 
 EXPOSE 3000
 
