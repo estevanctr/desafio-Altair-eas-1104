@@ -1,98 +1,116 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# JusCash API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is the central API for the JusCash project. It manages users, authentication, judicial processes, and synchronizes judicial communications from external APIs.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Project Architecture and Modules
 
-## Description
+The project is structured into domain-specific modules, following Clean Architecture principles (Controllers → Use Cases → Repositories → Domains). 
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+For an in-depth understanding of how each core module works, please refer to their respective documentation files:
 
-## Project setup
+- **[User Module](src/modules/user/user.md)**: Manages user accounts, creation, and password updates.
+- **[Auth Module](src/modules/auth/auth.md)**: Handles stateless authentication via JWT signed with asymmetric keys (RS256).
+- **[Process Module](src/modules/process/process.md)**: Exposes read endpoints for judicial processes and their communications.
+- **[Update Processes Scheduler Module](src/modules/update-processes-scheduler/update-processes-scheduler.md)**: A worker/scheduler that fetches, processes, and stores judicial communications from the public PJe API.
 
+### AI Assistant Skills (Claude)
+
+This project includes a custom AI skill configuration located at `[.claude/skills/nestjs-module-architecture/SKILL.md](.claude/skills/nestjs-module-architecture/SKILL.md)`. This skill guides AI assistants on how to scaffold and manage NestJS modules following the project's specific Clean Architecture patterns, ensuring that AI-generated code natively understands and implements our strict separation of layers (Controllers, Use Cases, Repositories, Mappers, DTOs).
+
+## Running the Project
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/) and Docker Compose installed on your machine.
+- [Node.js](https://nodejs.org/) (version 22+ recommended) for local development without Docker.
+
+### Environment Setup
+
+1. Navigate into the repository folder.
+2. Create your `.env` file by copying the provided example:
+   ```bash
+   cp env.example .env
+   ```
+3. Fill in the required environment variables in the `.env` file (e.g., Database credentials, JWT asymmetric keys, etc.).
+   > *Note: For generating RSA keys for the Auth module, check the [Auth Module documentation](src/modules/auth/auth.md).*
+
+### Using Docker (Recommended)
+
+The easiest way to run the database and the API together is using Docker Compose.
+
+1. Build and start the containers:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+2. The API will be available at `http://localhost:3000` (or the port defined in your `.env` file). The Postgres database will be available on the configured port.
+
+3. To view the application logs:
+   ```bash
+   docker-compose logs -f api
+   ```
+
+4. To stop the containers:
+   ```bash
+   docker-compose down
+   ```
+
+### Local Development (Without Docker for the API)
+
+If you prefer to run the application locally (useful for debugging):
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Start only the PostgreSQL database using Docker:
+   ```bash
+   docker-compose up -d postgres
+   ```
+
+3. Generate the Prisma Client and run migrations:
+   ```bash
+   npx prisma generate
+   # if you need to run migrations: npx prisma migrate deploy
+   ```
+
+4. Start the application:
+   ```bash
+   # development
+   npm run start
+
+   # watch mode
+   npm run start:dev
+   ```
+
+## Database Seeding
+
+To populate your database with initial or test data, you can run the Prisma seed script. Make sure your database is running and migrations have been applied before running this command.
+
+If you are using **Docker** and haven't installed dependencies locally, run it inside the API container:
 ```bash
-$ npm install
+docker-compose exec api npx prisma db seed
 ```
 
-## Compile and run the project
+## Running Tests
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+The application uses Vitest for testing. You can run tests using the following commands:
 
 ```bash
 # unit tests
-$ npm run test
+npm run test
 
-# e2e tests
-$ npm run test:e2e
+# watch mode
+npm run test:watch
 
 # test coverage
-$ npm run test:cov
-```
+npm run test:cov
 
-## Deployment
+## Built With
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [NestJS](https://nestjs.com/)
+- [Prisma](https://www.prisma.io/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Vitest](https://vitest.dev/)
+- [Docker](https://www.docker.com/)
