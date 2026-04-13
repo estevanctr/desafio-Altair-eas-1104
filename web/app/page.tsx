@@ -1,65 +1,135 @@
+"use client";
+
+import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function Home() {
+  const [showPassword, setShowPassword] = React.useState(false);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen bg-muted/40 flex flex-col lg:h-screen">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 min-h-0">
+        <div className="hidden lg:flex items-center justify-center p-4">
+          <section className="relative h-full w-full overflow-hidden rounded-xl">
+            <Image
+              src="/login-image.png"
+              alt="JusCash"
+              fill
+              priority
+              className="object-cover"
+              sizes="50vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
+            <div className="absolute left-6 top-6 max-w-[80%] text-white">
+              <Image
+                src="/logo.svg"
+                alt="JusCash"
+                width={160}
+                height={40}
+                priority
+                className="h-9 w-auto"
+              />
+              <p className="mt-3 text-sm text-white/85">
+                Antecipe honorários advocatícios com a JusCash
+              </p>
+            </div>
+          </section>
+        </div>
+
+        <div className="flex flex-col items-center justify-center gap-6 px-4 py-8 sm:py-12 lg:gap-4 lg:py-4">
+          <div className="flex flex-col items-center text-center lg:hidden">
+            <Image
+              src="/logo-responsive.svg"
+              alt="JusCash"
+              width={200}
+              height={48}
+              priority
+              className="h-10 w-auto"
+            />
+            <p className="mt-3 text-sm text-muted-foreground">
+              Antecipe honorários advocatícios com a JusCash
+            </p>
+          </div>
+
+          <section className="w-full max-w-[460px] rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8 lg:min-h-[352px]">
+            <div className="space-y-1 text-center">
+              <h2 className="text-2xl font-semibold tracking-tight text-card-foreground">
+                Bem-vindo de volta
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Acesse sua conta para continuar
+              </p>
+            </div>
+
+            <form className="mt-6 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  autoComplete="email"
+                  className="h-10"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="password">Senha</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    className="h-10 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={
+                      showPassword ? "Ocultar senha" : "Mostrar senha"
+                    }
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-r-lg"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-11 bg-blue-900 text-white hover:bg-blue-950 focus-visible:ring-blue-900/40"
+              >
+                Entrar
+              </Button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              Não tem conta?{" "}
+              <Link
+                href="/cadastro"
+                className="font-medium text-blue-900 hover:underline"
+              >
+                Cadastre-se
+              </Link>
+            </p>
+          </section>
+
+          <p className="max-w-[460px] text-center text-xs text-muted-foreground">
+            © 2026 · Juscash Administração de Pagamentos e Recebimentos SA
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
