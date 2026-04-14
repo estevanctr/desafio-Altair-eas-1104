@@ -3,14 +3,37 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signIn } from "@/actions/auth/signIn";
 
-export default function Home() {
+export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = React.useState(false);
+  const [isPending, startTransition] = React.useTransition();
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+    setErrorMessage(null);
+
+    startTransition(async () => {
+      const result = await signIn({ email, password });
+      if (result.error) {
+        setErrorMessage("Email ou senha inválidos");
+        return;
+      }
+      router.push("/processes-list");
+      router.refresh();
+    });
+  }
 
   return (
     <main className="min-h-screen bg-muted/40 flex flex-col lg:h-screen">
@@ -67,14 +90,16 @@ export default function Home() {
               </p>
             </div>
 
-            <form className="mt-6 space-y-4">
+            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1.5">
                 <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="seu@email.com"
                   autoComplete="email"
+                  required
                   className="h-10"
                 />
               </div>
@@ -84,9 +109,11 @@ export default function Home() {
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     autoComplete="current-password"
+                    required
                     className="h-10 pr-10"
                   />
                   <button
@@ -106,11 +133,21 @@ export default function Home() {
                 </div>
               </div>
 
+              {errorMessage ? (
+                <p
+                  role="alert"
+                  className="text-sm text-red-600"
+                >
+                  {errorMessage}
+                </p>
+              ) : null}
+
               <Button
                 type="submit"
+                disabled={isPending}
                 className="w-full h-11 bg-blue-900 text-white hover:bg-blue-950 focus-visible:ring-blue-900/40"
               >
-                Entrar
+                {isPending ? "Entrando..." : "Entrar"}
               </Button>
             </form>
 
