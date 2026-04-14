@@ -1,14 +1,8 @@
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type {
-  UpdateProcessesSummary,
-} from '../../use-cases/update-processes-usecase';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { UpdateProcessesJob } from '../../jobs/update-processes.job';
-import type { UpdateProcessesUseCase } from '../../use-cases/update-processes-usecase';
+import type { UpdateProcessesSummary, UpdateProcessesUseCase } from '../../use-cases/update-processes-usecase';
 
-
-function makeSummary(
-  overrides: Partial<UpdateProcessesSummary> = {},
-): UpdateProcessesSummary {
+function makeSummary(overrides: Partial<UpdateProcessesSummary> = {}): UpdateProcessesSummary {
   return {
     referenceDate: '2026-04-10',
     totalFetched: 5,
@@ -19,7 +13,6 @@ function makeSummary(
     ...overrides,
   };
 }
-
 
 describe('UpdateProcessesJob', () => {
   let execute: Mock;

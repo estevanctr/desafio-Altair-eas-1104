@@ -1,11 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import type { IProcessRepository, PaginatedResult } from '../../repository/contracts/process-repository';
 import type { CommunicationType } from '../../types/communication-type';
 import type { ProcessType } from '../../types/process-type';
-import type {
-  IProcessRepository,
-  PaginatedResult,
-} from '../../repository/contracts/process-repository';
 import {
   COMMUNICATIONS_PAGE_SIZE,
   ListProcessCommunicationsUseCase,
@@ -122,9 +119,7 @@ describe('ListProcessCommunicationsUseCase', () => {
   it('throws NotFoundException when the process does not exist', async () => {
     findById.mockResolvedValue(null);
 
-    await expect(
-      useCase.execute({ processId: 'missing', page: 1 }),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(useCase.execute({ processId: 'missing', page: 1 })).rejects.toBeInstanceOf(NotFoundException);
 
     expect(listCommunicationsByProcess).not.toHaveBeenCalled();
   });

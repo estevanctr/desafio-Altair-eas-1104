@@ -4,10 +4,7 @@ import { Env } from '../../../env';
 import { ProcessCommunicationAdapter } from '../adapters/process-communication.adapter';
 import { ProcessApiItem } from '../types/process-api-item.type';
 import { ProcessSyncInput } from '../types/process-sync-input.type';
-import {
-  FetchCommunicationsParams,
-  IProcessCommunicationsGateway,
-} from './contracts/process-communications-gateway';
+import { FetchCommunicationsParams, IProcessCommunicationsGateway } from './contracts/process-communications-gateway';
 
 const ITEMS_PER_PAGE = 100;
 const DELAY_BETWEEN_PAGES_MS = 1000;
@@ -39,9 +36,7 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
     });
   }
 
-  async *streamCommunications(
-    params: FetchCommunicationsParams,
-  ): AsyncGenerator<ProcessSyncInput[]> {
+  async *streamCommunications(params: FetchCommunicationsParams): AsyncGenerator<ProcessSyncInput[]> {
     let page = 1;
 
     while (true) {
@@ -64,10 +59,7 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
     }
   }
 
-  private async fetchPage(
-    params: FetchCommunicationsParams,
-    page: number,
-  ): Promise<FetchPageResult> {
+  private async fetchPage(params: FetchCommunicationsParams, page: number): Promise<FetchPageResult> {
     const query = new URLSearchParams({
       siglaTribunal: params.siglaTribunal,
       orgaoId: String(params.orgaoId),
@@ -93,9 +85,7 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
 
       if (result.kind === 'retry-rate-limit') {
         if (rateLimitAttempts >= MAX_RATE_LIMIT_RETRIES) {
-          throw new Error(
-            `Rate limit retries exhausted after ${MAX_RATE_LIMIT_RETRIES} attempts for ${target}`,
-          );
+          throw new Error(`Rate limit retries exhausted after ${MAX_RATE_LIMIT_RETRIES} attempts for ${target}`);
         }
         this.logger.warn(
           `Rate limit hit for ${target}. Waiting ${RATE_LIMIT_COOLDOWN_MS}ms before retry ${rateLimitAttempts + 1}/${MAX_RATE_LIMIT_RETRIES}`,
@@ -106,11 +96,7 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
       }
 
       if (result.kind === 'retry-network') {
-        networkAttempts = await this.waitForTransientRetry(
-          networkAttempts,
-          target,
-          result.reason,
-        );
+        networkAttempts = await this.waitForTransientRetry(networkAttempts, target, result.reason);
         continue;
       }
 
@@ -118,29 +104,19 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
         serverErrorAttempts,
         target,
         `server error ${result.status}${result.body ? `: ${result.body}` : ''}`,
-        () =>
-          this.logger.error(
-            `Server error retries exhausted (${result.status}) for ${target}: ${result.body}`,
-          ),
+        () => this.logger.error(`Server error retries exhausted (${result.status}) for ${target}: ${result.body}`),
       );
     }
   }
 
-  private async attemptOnce(
-    url: string,
-    target: string,
-  ): Promise<AttemptResult> {
+  private async attemptOnce(url: string, target: string): Promise<AttemptResult> {
     let response: Response;
     try {
       response = await this.requestWithTimeout(url);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const isAbort =
-        error instanceof Error &&
-        (error.name === 'AbortError' || message.includes('aborted'));
-      const reason = isAbort
-        ? `timeout after ${REQUEST_TIMEOUT_MS}ms`
-        : `network error: ${message}`;
+      const isAbort = error instanceof Error && (error.name === 'AbortError' || message.includes('aborted'));
+      const reason = isAbort ? `timeout after ${REQUEST_TIMEOUT_MS}ms` : `network error: ${message}`;
       return { kind: 'retry-network', reason };
     }
 
@@ -155,21 +131,15 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
 
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      this.logger.error(
-        `Process communications API request failed (${response.status}) for ${target}: ${body}`,
-      );
-      throw new Error(
-        `Process communications API request failed with status ${response.status}`,
-      );
+      this.logger.error(`Process communications API request failed (${response.status}) for ${target}: ${body}`);
+      throw new Error(`Process communications API request failed with status ${response.status}`);
     }
 
     return { kind: 'success', response };
   }
 
   private async parsePayload(response: Response): Promise<FetchPageResult> {
-    const payload = (await response.json()) as
-      | ProcessApiItem[]
-      | { items?: ProcessApiItem[]; count?: number };
+    const payload = (await response.json()) as ProcessApiItem[] | { items?: ProcessApiItem[]; count?: number };
 
     if (Array.isArray(payload)) {
       return { items: payload, count: null };
@@ -188,9 +158,7 @@ export class ProcessCommunicationsGateway implements IProcessCommunicationsGatew
   ): Promise<number> {
     if (attempts >= MAX_TRANSIENT_RETRIES) {
       onExhausted?.();
-      throw new Error(
-        `Transient failure retries exhausted for ${target} (${reason})`,
-      );
+      throw new Error(`Transient failure retries exhausted for ${target} (${reason})`);
     }
     const backoff = TRANSIENT_BACKOFF_MS[attempts];
     this.logger.warn(

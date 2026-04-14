@@ -9,9 +9,7 @@ describe('UpdateUserPasswordController', () => {
 
   beforeEach(() => {
     useCase = { execute: vi.fn() };
-    controller = new UpdateUserPasswordController(
-      useCase as unknown as UpdateUserPasswordUseCase,
-    );
+    controller = new UpdateUserPasswordController(useCase as unknown as UpdateUserPasswordUseCase);
   });
 
   it('forwards the route param id and body to the use case', async () => {

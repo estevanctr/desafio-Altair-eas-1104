@@ -9,9 +9,7 @@ describe('ListProcessCommunicationsController', () => {
 
   beforeEach(() => {
     useCase = { execute: vi.fn() };
-    controller = new ListProcessCommunicationsController(
-      useCase as unknown as ListProcessCommunicationsUseCase,
-    );
+    controller = new ListProcessCommunicationsController(useCase as unknown as ListProcessCommunicationsUseCase);
   });
 
   it('delegates to the use case with the processId from the route and the page from the query', async () => {
@@ -44,8 +42,6 @@ describe('ListProcessCommunicationsController', () => {
     const error = new Error('boom');
     useCase.execute.mockRejectedValue(error);
 
-    await expect(
-      controller.handle('process-1', { page: 1 }),
-    ).rejects.toBe(error);
+    await expect(controller.handle('process-1', { page: 1 })).rejects.toBe(error);
   });
 });

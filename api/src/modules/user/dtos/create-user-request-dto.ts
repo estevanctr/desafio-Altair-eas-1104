@@ -1,10 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import {
-  emailSchema,
-  passwordSchema,
-  requiredString,
-} from './schemas/zod-helpers';
+import { emailSchema, passwordSchema, requiredString } from './schemas/zod-helpers';
 
 export const CreateUserBodySchema = z.object({
   name: requiredString('name'),

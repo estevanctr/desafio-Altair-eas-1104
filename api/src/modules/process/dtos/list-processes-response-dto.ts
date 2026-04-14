@@ -26,9 +26,7 @@ export interface ListProcessesResponseDto {
 }
 
 export const ListProcessesResponseDto = {
-  toResponseDto(
-    result: PaginatedResult<ProcessWithLatestCommunicationType>,
-  ): ListProcessesResponseDto {
+  toResponseDto(result: PaginatedResult<ProcessWithLatestCommunicationType>): ListProcessesResponseDto {
     return {
       items: result.items.map((item) => ({
         id: item.id,
@@ -40,16 +38,13 @@ export const ListProcessesResponseDto = {
           publicationDate: item.publicationDate,
           content: item.content,
           aiSummary: item.aiSummary,
-          recipients: item.recipientNames
-            ? item.recipientNames.split(',').map((name) => name.trim())
-            : [],
+          recipients: item.recipientNames ? item.recipientNames.split(',').map((name) => name.trim()) : [],
         },
       })),
       total: result.total,
       page: result.page,
       pageSize: result.pageSize,
-      totalPages:
-        result.pageSize > 0 ? Math.ceil(result.total / result.pageSize) : 0,
+      totalPages: result.pageSize > 0 ? Math.ceil(result.total / result.pageSize) : 0,
     };
   },
 };

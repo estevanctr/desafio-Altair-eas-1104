@@ -12,9 +12,5 @@ export const ListProcessCommunicationsQuerySchema = z.object({
     }),
 });
 
-export type ListProcessCommunicationsQuerySchema = z.infer<
-  typeof ListProcessCommunicationsQuerySchema
->;
-export class ListProcessCommunicationsRequestDto extends createZodDto(
-  ListProcessCommunicationsQuerySchema,
-) {}
+export type ListProcessCommunicationsQuerySchema = z.infer<typeof ListProcessCommunicationsQuerySchema>;
+export class ListProcessCommunicationsRequestDto extends createZodDto(ListProcessCommunicationsQuerySchema) {}

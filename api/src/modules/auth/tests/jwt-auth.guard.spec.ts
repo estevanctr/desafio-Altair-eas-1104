@@ -22,9 +22,7 @@ describe('JwtAuthGuard', () => {
       name: 'TokenExpiredError',
     });
 
-    expect(() => guard.handleRequest(null, false, info)).toThrow(
-      new UnauthorizedException('Token has expired'),
-    );
+    expect(() => guard.handleRequest(null, false, info)).toThrow(new UnauthorizedException('Token has expired'));
   });
 
   it('throws "Invalid token" when info is JsonWebTokenError', () => {
@@ -32,9 +30,7 @@ describe('JwtAuthGuard', () => {
       name: 'JsonWebTokenError',
     });
 
-    expect(() => guard.handleRequest(null, false, info)).toThrow(
-      new UnauthorizedException('Invalid token'),
-    );
+    expect(() => guard.handleRequest(null, false, info)).toThrow(new UnauthorizedException('Invalid token'));
   });
 
   it('re-throws unexpected errors from passport', () => {
@@ -44,8 +40,6 @@ describe('JwtAuthGuard', () => {
   });
 
   it('throws generic Unauthorized when there is no user and no info', () => {
-    expect(() => guard.handleRequest(null, false, undefined)).toThrow(
-      new UnauthorizedException('Unauthorized'),
-    );
+    expect(() => guard.handleRequest(null, false, undefined)).toThrow(new UnauthorizedException('Unauthorized'));
   });
 });

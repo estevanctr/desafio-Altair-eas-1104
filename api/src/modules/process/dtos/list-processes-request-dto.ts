@@ -33,10 +33,7 @@ const listProcessesQueryObject = z.object({
 });
 
 export const ListProcessesQuerySchema = listProcessesQueryObject.refine(
-  (data) =>
-    !data.publicationDateFrom ||
-    !data.publicationDateTo ||
-    data.publicationDateFrom <= data.publicationDateTo,
+  (data) => !data.publicationDateFrom || !data.publicationDateTo || data.publicationDateFrom <= data.publicationDateTo,
   {
     message: 'publicationDateFrom must be before or equal to publicationDateTo',
     path: ['publicationDateFrom'],
@@ -44,6 +41,4 @@ export const ListProcessesQuerySchema = listProcessesQueryObject.refine(
 );
 
 export type ListProcessesQuerySchema = z.infer<typeof listProcessesQueryObject>;
-export class ListProcessesRequestDto extends createZodDto(
-  listProcessesQueryObject,
-) {}
+export class ListProcessesRequestDto extends createZodDto(listProcessesQueryObject) {}

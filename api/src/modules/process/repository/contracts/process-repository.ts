@@ -26,8 +26,5 @@ export interface IProcessRepository {
 
   findCommunicationById(id: string): Promise<CommunicationType | null>;
 
-  updateCommunicationAiSummary(
-    id: string,
-    aiSummary: string,
-  ): Promise<CommunicationType>;
+  updateCommunicationAiSummary(id: string, aiSummary: string): Promise<CommunicationType>;
 }

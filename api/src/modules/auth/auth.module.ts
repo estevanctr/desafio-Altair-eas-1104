@@ -5,9 +5,9 @@ import { PassportModule } from '@nestjs/passport';
 import { HashModule } from '../../drivers/hash/hash.module';
 import type { Env } from '../../env';
 import { UserModule } from '../user/user.module';
-import { AuthenticateController } from './controllers/authenticate.controller';
-import { JwtAuthGuard } from './configs/jwt-auth.guard';
 import { JwtStrategy } from './configs/jwt.strategy';
+import { JwtAuthGuard } from './configs/jwt-auth.guard';
+import { AuthenticateController } from './controllers/authenticate.controller';
 import { TokenService } from './services/token.service';
 import { AuthenticateUseCase } from './use-cases/authenticate-usecase';
 

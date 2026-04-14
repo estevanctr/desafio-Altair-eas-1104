@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import type { UserType } from '../types/user-type';
-import type {
-  CreateUserData,
-  IUserRepository,
-} from './contracts/user-repository';
+import type { CreateUserData, IUserRepository } from './contracts/user-repository';
 import { UserMapper } from './mappers/user-mapper';
 
 @Injectable()

@@ -1,5 +1,5 @@
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { IHashDriver } from '../../../../drivers/hash/contracts/hash-driver';
 import type { IUserRepository } from '../../repository/contracts/user-repository';
 import type { UserType } from '../../types/user-type';
@@ -59,10 +59,7 @@ describe('UpdateUserPasswordUseCase', () => {
     const result = await useCase.execute(baseInput);
 
     expect(findById).toHaveBeenCalledWith(existingUser.id);
-    expect(compare).toHaveBeenCalledWith(
-      baseInput.currentPassword,
-      existingUser.password,
-    );
+    expect(compare).toHaveBeenCalledWith(baseInput.currentPassword, existingUser.password);
     expect(hash).toHaveBeenCalledWith(baseInput.newPassword);
     expect(updatePassword).toHaveBeenCalledWith(existingUser.id, 'new-hashed');
     expect(result.id).toBe(existingUser.id);
@@ -72,9 +69,7 @@ describe('UpdateUserPasswordUseCase', () => {
   it('throws NotFoundException when the user does not exist', async () => {
     findById.mockResolvedValue(null);
 
-    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(NotFoundException);
     expect(compare).not.toHaveBeenCalled();
     expect(updatePassword).not.toHaveBeenCalled();
   });
@@ -83,9 +78,7 @@ describe('UpdateUserPasswordUseCase', () => {
     findById.mockResolvedValue(existingUser);
     compare.mockResolvedValue(false);
 
-    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(UnauthorizedException);
     expect(hash).not.toHaveBeenCalled();
     expect(updatePassword).not.toHaveBeenCalled();
   });

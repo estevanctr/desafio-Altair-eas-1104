@@ -15,10 +15,7 @@ describe('TokenService', () => {
     const configService = {
       get: vi.fn().mockReturnValue('4h'),
     } as unknown as ConfigService;
-    service = new TokenService(
-      jwtService,
-      configService as unknown as ConstructorParameters<typeof TokenService>[1],
-    );
+    service = new TokenService(jwtService, configService as unknown as ConstructorParameters<typeof TokenService>[1]);
   });
 
   it('signs the payload with the expiration read from env', () => {

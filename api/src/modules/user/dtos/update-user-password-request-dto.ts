@@ -7,9 +7,5 @@ export const UpdateUserPasswordBodySchema = z.object({
   newPassword: passwordSchema,
 });
 
-export type UpdateUserPasswordBodySchema = z.infer<
-  typeof UpdateUserPasswordBodySchema
->;
-export class UpdateUserPasswordRequestDto extends createZodDto(
-  UpdateUserPasswordBodySchema,
-) {}
+export type UpdateUserPasswordBodySchema = z.infer<typeof UpdateUserPasswordBodySchema>;
+export class UpdateUserPasswordRequestDto extends createZodDto(UpdateUserPasswordBodySchema) {}

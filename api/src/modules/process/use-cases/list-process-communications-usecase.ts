@@ -12,18 +12,13 @@ export class ListProcessCommunicationsUseCase {
     private readonly processRepository: IProcessRepository,
   ) {}
 
-  async execute(
-    input: ListProcessCommunicationsRequest,
-  ): Promise<ListProcessCommunicationsResponseDto> {
+  async execute(input: ListProcessCommunicationsRequest): Promise<ListProcessCommunicationsResponseDto> {
     const process = await this.processRepository.findById(input.processId);
     if (!process) {
       throw new NotFoundException('Process not found');
     }
 
-    const result = await this.processRepository.listCommunicationsByProcess(
-      input,
-      COMMUNICATIONS_PAGE_SIZE,
-    );
+    const result = await this.processRepository.listCommunicationsByProcess(input, COMMUNICATIONS_PAGE_SIZE);
 
     return ListProcessCommunicationsResponseDto.toResponseDto(process, result);
   }

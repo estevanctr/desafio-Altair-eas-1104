@@ -1,5 +1,5 @@
 import { ConflictException } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { IHashDriver } from '../../../../drivers/hash/contracts/hash-driver';
 import type { IUserRepository } from '../../repository/contracts/user-repository';
 import type { UserType } from '../../types/user-type';
@@ -78,9 +78,7 @@ describe('CreateUserUseCase', () => {
       createdAt: new Date(),
     });
 
-    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(ConflictException);
     expect(hash).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });

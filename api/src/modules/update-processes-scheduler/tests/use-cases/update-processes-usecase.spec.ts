@@ -1,11 +1,8 @@
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { IProcessCommunicationsGateway } from '../../gateways/contracts/process-communications-gateway';
 import type { IProcessSyncRepository } from '../../repository/contracts/process-sync-repository';
 import type { ProcessSyncInput } from '../../types/process-sync-input.type';
-import {
-  UpdateProcessesUseCase,
-} from '../../use-cases/update-processes-usecase';
-
+import { UpdateProcessesUseCase } from '../../use-cases/update-processes-usecase';
 
 function makeSyncInput(overrides: Partial<{ externalId: number }> = {}): ProcessSyncInput {
   return {
@@ -25,7 +22,6 @@ function makeSyncInput(overrides: Partial<{ externalId: number }> = {}): Process
     recipients: [],
   };
 }
-
 
 function mockStreamReturning(...batches: ProcessSyncInput[][]) {
   return () => {
@@ -49,6 +45,7 @@ function mockEmptyStream() {
 
 function mockThrowingStream(error: Error) {
   return () => {
+    // biome-ignore lint/correctness/useYield: test mock that throws before yielding
     async function* gen(): AsyncGenerator<ProcessSyncInput[]> {
       throw error;
     }
@@ -71,25 +68,19 @@ describe('UpdateProcessesUseCase', () => {
     useCase = new UpdateProcessesUseCase(gateway, repository);
   });
 
-
   it('returns referenceDate as yesterday in YYYY-MM-DD format (UTC)', async () => {
     streamCommunications.mockImplementation(mockEmptyStream());
 
     const summary = await useCase.execute();
 
     const expected = new Date(
-      Date.UTC(
-        new Date().getUTCFullYear(),
-        new Date().getUTCMonth(),
-        new Date().getUTCDate() - 1,
-      ),
+      Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() - 1),
     )
       .toISOString()
       .slice(0, 10);
 
     expect(summary.referenceDate).toBe(expected);
   });
-
 
   it('aggregates totals from a single batch with all items created', async () => {
     const items = [makeSyncInput({ externalId: 1 }), makeSyncInput({ externalId: 2 })];
@@ -133,7 +124,6 @@ describe('UpdateProcessesUseCase', () => {
     expect(summary.totalCreated).toBe(3 * 3);
   });
 
-
   it('increments failed counter but keeps processing when persistCommunication throws', async () => {
     const items = [
       makeSyncInput({ externalId: 1 }),
@@ -160,7 +150,6 @@ describe('UpdateProcessesUseCase', () => {
     expect(persistCommunication).toHaveBeenCalledTimes(9);
   });
 
-
   it('isolates organ-level failures: other organs are still processed', async () => {
     let callCount = 0;
     streamCommunications.mockImplementation(() => {
@@ -180,7 +169,6 @@ describe('UpdateProcessesUseCase', () => {
     expect(summary.totalCreated).toBe(2);
   });
 
-
   it('populates perOrgan entries with matching label, siglaTribunal and orgaoId', async () => {
     streamCommunications.mockImplementation(mockEmptyStream());
 
@@ -191,7 +179,6 @@ describe('UpdateProcessesUseCase', () => {
     expect(summary.perOrgan[1].siglaTribunal).toBe('TJTO');
     expect(summary.perOrgan[2].siglaTribunal).toBe('TJRS');
   });
-
 
   it('returns zero totals when the gateway yields no items', async () => {
     streamCommunications.mockImplementation(mockEmptyStream());

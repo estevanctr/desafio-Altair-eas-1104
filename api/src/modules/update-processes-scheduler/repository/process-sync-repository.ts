@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { ProcessSyncInput } from '../../../modules/update-processes-scheduler/types/process-sync-input.type';
-import {
-  IProcessSyncRepository,
-  PersistResult,
-} from './contracts/process-sync-repository';
+import { IProcessSyncRepository, PersistResult } from './contracts/process-sync-repository';
 
 @Injectable()
 export class ProcessSyncRepository implements IProcessSyncRepository {

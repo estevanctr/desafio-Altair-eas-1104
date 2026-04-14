@@ -7,10 +7,7 @@ export interface UpdateUserPasswordResponseDto {
 }
 
 export const UpdateUserPasswordResponseDto = {
-  toResponseDto(data: {
-    id: string;
-    updatedAt: Date;
-  }): UpdateUserPasswordResponseDto {
+  toResponseDto(data: { id: string; updatedAt: Date }): UpdateUserPasswordResponseDto {
     return {
       id: data.id,
       updatedAt: data.updatedAt,

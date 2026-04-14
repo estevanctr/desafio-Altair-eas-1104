@@ -13,11 +13,7 @@ export class ListProcessesUseCase {
   ) {}
 
   async execute(filters: ListProcessesRequest): Promise<ListProcessesResponseDto> {
-    const result =
-      await this.processRepository.listProcessesWithLatestCommunication(
-        filters,
-        PROCESSES_PAGE_SIZE,
-      );
+    const result = await this.processRepository.listProcessesWithLatestCommunication(filters, PROCESSES_PAGE_SIZE);
     return ListProcessesResponseDto.toResponseDto(result);
   }
 }

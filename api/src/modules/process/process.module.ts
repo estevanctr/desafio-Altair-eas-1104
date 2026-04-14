@@ -12,11 +12,7 @@ import { SummarizeCommunicationUseCase } from './use-cases/summarize-communicati
 
 @Module({
   imports: [AuthModule, AIModule],
-  controllers: [
-    ListProcessesController,
-    ListProcessCommunicationsController,
-    SummarizeCommunicationController,
-  ],
+  controllers: [ListProcessesController, ListProcessCommunicationsController, SummarizeCommunicationController],
   providers: [
     PrismaService,
     ListProcessesUseCase,

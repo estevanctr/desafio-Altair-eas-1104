@@ -1,15 +1,7 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
-import { ProcessCommunicationsGateway } from '../../gateways/process-communications-gateway';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FetchCommunicationsParams } from '../../gateways/contracts/process-communications-gateway';
+import { ProcessCommunicationsGateway } from '../../gateways/process-communications-gateway';
 import type { ProcessApiItem } from '../../types/process-api-item.type';
-
 
 const DEFAULT_PARAMS: FetchCommunicationsParams = {
   siglaTribunal: 'TRT10',
@@ -51,16 +43,13 @@ function makeGateway(): ProcessCommunicationsGateway {
   return new ProcessCommunicationsGateway(configService);
 }
 
-async function collectAll(
-  gen: AsyncIterable<unknown[]>,
-): Promise<unknown[]> {
+async function collectAll(gen: AsyncIterable<unknown[]>): Promise<unknown[]> {
   const all: unknown[] = [];
   for await (const batch of gen) {
     all.push(...batch);
   }
   return all;
 }
-
 
 async function drainTimers(ms = 300_000) {
   const step = 10_000;
@@ -69,9 +58,7 @@ async function drainTimers(ms = 300_000) {
   }
 }
 
-async function collectWithDrain(
-  gen: AsyncIterable<unknown[]>,
-): Promise<{ results?: unknown[]; error?: Error }> {
+async function collectWithDrain(gen: AsyncIterable<unknown[]>): Promise<{ results?: unknown[]; error?: Error }> {
   const promise = collectAll(gen).then(
     (results) => ({ results }),
     (err) => ({ error: err as Error }),
@@ -79,7 +66,6 @@ async function collectWithDrain(
   await drainTimers();
   return promise;
 }
-
 
 describe('ProcessCommunicationsGateway', () => {
   let gateway: ProcessCommunicationsGateway;
@@ -93,7 +79,6 @@ describe('ProcessCommunicationsGateway', () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
-
 
   it('stops after one page when the response is a plain array with fewer items than page size', async () => {
     const items = [makeApiItem(1), makeApiItem(2)];
@@ -109,15 +94,14 @@ describe('ProcessCommunicationsGateway', () => {
     const page1Items = Array.from({ length: 100 }, (_, i) => makeApiItem(i + 1));
     const page2Items = Array.from({ length: 50 }, (_, i) => makeApiItem(i + 101));
 
-    const fetchMock = vi.fn()
+    const fetchMock = vi
+      .fn()
       .mockResolvedValueOnce(jsonResponse({ items: page1Items, count: 150 }))
       .mockResolvedValueOnce(jsonResponse({ items: page2Items, count: 150 }));
 
     vi.stubGlobal('fetch', fetchMock);
 
-    const { results } = await collectWithDrain(
-      gateway.streamCommunications(DEFAULT_PARAMS),
-    );
+    const { results } = await collectWithDrain(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(results).toHaveLength(150);
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -133,28 +117,20 @@ describe('ProcessCommunicationsGateway', () => {
   });
 
   it('stops when object payload has empty items array', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(jsonResponse({ items: [], count: 0 })),
-    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ items: [], count: 0 })));
 
     const results = await collectAll(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(results).toHaveLength(0);
   });
 
-
   it('retries after 429 with cooldown and eventually succeeds', async () => {
     const items = [makeApiItem(1)];
-    const fetchMock = vi.fn()
-      .mockResolvedValueOnce(textResponse('', 429))
-      .mockResolvedValueOnce(jsonResponse(items));
+    const fetchMock = vi.fn().mockResolvedValueOnce(textResponse('', 429)).mockResolvedValueOnce(jsonResponse(items));
 
     vi.stubGlobal('fetch', fetchMock);
 
-    const { results } = await collectWithDrain(
-      gateway.streamCommunications(DEFAULT_PARAMS),
-    );
+    const { results } = await collectWithDrain(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(results).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -164,28 +140,24 @@ describe('ProcessCommunicationsGateway', () => {
     const fetchMock = vi.fn().mockResolvedValue(textResponse('', 429));
     vi.stubGlobal('fetch', fetchMock);
 
-    const { error } = await collectWithDrain(
-      gateway.streamCommunications(DEFAULT_PARAMS),
-    );
+    const { error } = await collectWithDrain(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(error).toBeDefined();
     expect(error!.message).toMatch(/rate limit retries exhausted/i);
     expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
-
   it('retries 5xx with exponential backoff and eventually succeeds', async () => {
     const items = [makeApiItem(1)];
-    const fetchMock = vi.fn()
+    const fetchMock = vi
+      .fn()
       .mockResolvedValueOnce(textResponse('Internal Server Error', 500))
       .mockResolvedValueOnce(textResponse('Bad Gateway', 502))
       .mockResolvedValueOnce(jsonResponse(items));
 
     vi.stubGlobal('fetch', fetchMock);
 
-    const { results } = await collectWithDrain(
-      gateway.streamCommunications(DEFAULT_PARAMS),
-    );
+    const { results } = await collectWithDrain(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(results).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledTimes(3);
@@ -195,43 +167,33 @@ describe('ProcessCommunicationsGateway', () => {
     const fetchMock = vi.fn().mockResolvedValue(textResponse('error', 500));
     vi.stubGlobal('fetch', fetchMock);
 
-    const { error } = await collectWithDrain(
-      gateway.streamCommunications(DEFAULT_PARAMS),
-    );
+    const { error } = await collectWithDrain(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(error).toBeDefined();
     expect(error!.message).toMatch(/transient failure retries exhausted/i);
     expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
-
   it('throws immediately on 4xx errors (non-429) without retrying', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(textResponse('Not Found', 404)),
-    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(textResponse('Not Found', 404)));
 
-    const { error } = await collectWithDrain(
-      gateway.streamCommunications(DEFAULT_PARAMS),
-    );
+    const { error } = await collectWithDrain(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(error).toBeDefined();
     expect(error!.message).toMatch(/status 404/);
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-
   it('retries on network errors with backoff and eventually succeeds', async () => {
     const items = [makeApiItem(1)];
-    const fetchMock = vi.fn()
+    const fetchMock = vi
+      .fn()
       .mockRejectedValueOnce(new Error('ECONNREFUSED'))
       .mockResolvedValueOnce(jsonResponse(items));
 
     vi.stubGlobal('fetch', fetchMock);
 
-    const { results } = await collectWithDrain(
-      gateway.streamCommunications(DEFAULT_PARAMS),
-    );
+    const { results } = await collectWithDrain(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(results).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -240,20 +202,15 @@ describe('ProcessCommunicationsGateway', () => {
   it('classifies AbortError as a timeout retry', async () => {
     const items = [makeApiItem(1)];
     const abortError = new DOMException('The operation was aborted', 'AbortError');
-    const fetchMock = vi.fn()
-      .mockRejectedValueOnce(abortError)
-      .mockResolvedValueOnce(jsonResponse(items));
+    const fetchMock = vi.fn().mockRejectedValueOnce(abortError).mockResolvedValueOnce(jsonResponse(items));
 
     vi.stubGlobal('fetch', fetchMock);
 
-    const { results } = await collectWithDrain(
-      gateway.streamCommunications(DEFAULT_PARAMS),
-    );
+    const { results } = await collectWithDrain(gateway.streamCommunications(DEFAULT_PARAMS));
 
     expect(results).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
-
 
   it('handles plain array payload (legacy format without count)', async () => {
     const items = [makeApiItem(1), makeApiItem(2)];
@@ -266,10 +223,7 @@ describe('ProcessCommunicationsGateway', () => {
 
   it('handles object payload with items and count', async () => {
     const items = [makeApiItem(1)];
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(jsonResponse({ items, count: 1 })),
-    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ items, count: 1 })));
 
     const results = await collectAll(gateway.streamCommunications(DEFAULT_PARAMS));
 

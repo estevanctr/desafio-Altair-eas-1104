@@ -3,11 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  handleRequest<T = unknown>(
-    err: Error | null,
-    user: T | false,
-    info: Error | undefined,
-  ): T {
+  handleRequest<T = unknown>(err: Error | null, user: T | false, info: Error | undefined): T {
     if (info?.name === 'TokenExpiredError') {
       throw new UnauthorizedException('Token has expired');
     }

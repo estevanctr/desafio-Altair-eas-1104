@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Param,
-  Patch,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, Patch, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiNotFoundResponse,
@@ -16,10 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtAuthGuard } from '../../auth/configs/jwt-auth.guard';
-import {
-  UpdateUserPasswordBodySchema,
-  UpdateUserPasswordRequestDto,
-} from '../dtos/update-user-password-request-dto';
+import { UpdateUserPasswordBodySchema, UpdateUserPasswordRequestDto } from '../dtos/update-user-password-request-dto';
 import type { UpdateUserPasswordResponseDto } from '../dtos/update-user-password-response-dto';
 import { UpdateUserPasswordResponseSchema } from '../dtos/update-user-password-response-dto';
 import { UpdateUserPasswordUseCase } from '../use-cases/update-user-password-usecase';
@@ -29,9 +19,7 @@ import { UpdateUserPasswordUseCase } from '../use-cases/update-user-password-use
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UpdateUserPasswordController {
-  constructor(
-    private readonly updateUserPasswordUseCase: UpdateUserPasswordUseCase,
-  ) {}
+  constructor(private readonly updateUserPasswordUseCase: UpdateUserPasswordUseCase) {}
 
   @Patch(':id/password')
   @HttpCode(200)

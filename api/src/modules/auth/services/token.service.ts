@@ -17,10 +17,7 @@ export class TokenService {
     private readonly jwtService: JwtService,
     configService: ConfigService<Env, true>,
   ) {
-    this.accessTokenExpiresIn = configService.get(
-      'JWT_ACCESS_TOKEN_EXPIRES_IN',
-      { infer: true },
-    );
+    this.accessTokenExpiresIn = configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN', { infer: true });
   }
 
   generateAccessToken(payload: TokenPayload): string {

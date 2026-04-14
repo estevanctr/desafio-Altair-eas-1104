@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { Env } from '../../../env';
 import { HashDriver } from '../hash-driver';
 

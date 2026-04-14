@@ -9,9 +9,7 @@ describe('AuthenticateController', () => {
 
   beforeEach(() => {
     useCase = { execute: vi.fn() };
-    controller = new AuthenticateController(
-      useCase as unknown as AuthenticateUseCase,
-    );
+    controller = new AuthenticateController(useCase as unknown as AuthenticateUseCase);
   });
 
   it('forwards email and password to the use case', async () => {
@@ -26,10 +24,7 @@ describe('AuthenticateController', () => {
       password: 'plain-password',
     });
 
-    expect(useCase.execute).toHaveBeenCalledWith(
-      'jane@example.com',
-      'plain-password',
-    );
+    expect(useCase.execute).toHaveBeenCalledWith('jane@example.com', 'plain-password');
     expect(result).toBe(response);
   });
 

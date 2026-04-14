@@ -1,9 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import {
-  emailSchema,
-  requiredString,
-} from '../../user/dtos/schemas/zod-helpers';
+import { emailSchema, requiredString } from '../../user/dtos/schemas/zod-helpers';
 
 export const AuthRequestBodySchema = z.object({
   email: emailSchema,

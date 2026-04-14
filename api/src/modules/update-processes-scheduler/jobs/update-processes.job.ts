@@ -6,9 +6,7 @@ import { UpdateProcessesUseCase } from '../use-cases/update-processes-usecase';
 export class UpdateProcessesJob {
   private readonly logger = new Logger(UpdateProcessesJob.name);
 
-  constructor(
-    private readonly updateProcessesUseCase: UpdateProcessesUseCase,
-  ) {}
+  constructor(private readonly updateProcessesUseCase: UpdateProcessesUseCase) {}
 
   @Cron('0 1 * * *', { name: 'update-processes-daily' })
   async handleCron(): Promise<void> {

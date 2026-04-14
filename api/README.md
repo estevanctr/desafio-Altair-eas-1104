@@ -13,6 +13,44 @@ For an in-depth understanding of how each core module works, please refer to the
 - **[Process Module](src/modules/process/process.md)**: Exposes read endpoints for judicial processes and their communications.
 - **[Update Processes Scheduler Module](src/modules/update-processes-scheduler/update-processes-scheduler.md)**: A worker/scheduler that fetches, processes, and stores judicial communications from the public PJe API.
 
+### Global Exception Filter
+
+All HTTP errors flow through a single [GlobalExceptionFilter](src/common/filters/global-exception.filter.ts), registered globally in [main.ts](src/main.ts). It normalizes every response body to a consistent shape:
+
+```json
+{
+  "error": {
+    "timestamp": "2026-04-14T12:00:00.000Z",
+    "code": 400,
+    "message": "..."
+  }
+}
+```
+
+The filter handles three cases:
+
+- **`ZodError`** — returned by `nestjs-zod` validation pipes. Mapped to `400 Bad Request`, with `message` containing the flattened `fieldErrors` so clients can highlight invalid inputs per field.
+- **`HttpException`** — any Nest-thrown exception (`NotFoundException`, `UnauthorizedException`, etc.) preserves its original status and message.
+- **Unknown exceptions** — mapped to `500 Internal Server Error` with a generic message. The full stack trace is logged via Nest's `Logger` so the client never sees internal details.
+
+This keeps controllers and use cases free of try/catch boilerplate — they can throw domain/HTTP exceptions and trust the filter to serialize them safely.
+
+### Code Style and Linting
+
+The project uses [Biome](https://biomejs.dev/) as a single tool for linting, formatting, and import sorting (replacing ESLint + Prettier). Configuration lives in [biome.json](biome.json) and is tuned for a NestJS backend:
+
+- Parameter decorators enabled (`unsafeParameterDecoratorsEnabled`) so `@Inject()` in constructors parses correctly.
+- `noExplicitAny` and `noEmptyBlockStatements` disabled — required by Nest patterns like empty constructors and decorator metadata.
+- React/a11y/JSX rules stripped out since this is a pure backend.
+- Ignores `generated/` (Prisma client), `dist/`, and `coverage/`.
+
+Commands:
+
+```bash
+npm run lint      # biome check --write  (lint + format + organize imports)
+npm run format    # biome format --write (format only)
+```
+
 ### AI Assistant Skills (Claude)
 
 This project includes a custom AI skill configuration located at `[.claude/skills/nestjs-module-architecture/SKILL.md](.claude/skills/nestjs-module-architecture/SKILL.md)`. This skill guides AI assistants on how to scaffold and manage NestJS modules following the project's specific Clean Architecture patterns, ensuring that AI-generated code natively understands and implements our strict separation of layers (Controllers, Use Cases, Repositories, Mappers, DTOs).

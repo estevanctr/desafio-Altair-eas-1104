@@ -9,9 +9,7 @@ describe('ListProcessesController', () => {
 
   beforeEach(() => {
     useCase = { execute: vi.fn() };
-    controller = new ListProcessesController(
-      useCase as unknown as ListProcessesUseCase,
-    );
+    controller = new ListProcessesController(useCase as unknown as ListProcessesUseCase);
   });
 
   it('forwards query parameters (including the publication date range) to the use case', async () => {

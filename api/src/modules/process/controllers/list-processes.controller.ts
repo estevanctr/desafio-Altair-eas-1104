@@ -1,17 +1,8 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtAuthGuard } from '../../auth/configs/jwt-auth.guard';
-import {
-  ListProcessesQuerySchema,
-  ListProcessesRequestDto,
-} from '../dtos/list-processes-request-dto';
+import { ListProcessesQuerySchema, ListProcessesRequestDto } from '../dtos/list-processes-request-dto';
 import type { ListProcessesResponseDto } from '../dtos/list-processes-response-dto';
 import { ListProcessesResponseSchema } from '../dtos/list-processes-response-dto';
 import { ListProcessesUseCase } from '../use-cases/list-processes-usecase';

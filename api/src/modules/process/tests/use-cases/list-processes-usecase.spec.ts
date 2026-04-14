@@ -1,13 +1,7 @@
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type {
-  IProcessRepository,
-  PaginatedResult,
-} from '../../repository/contracts/process-repository';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import type { IProcessRepository, PaginatedResult } from '../../repository/contracts/process-repository';
 import type { ProcessWithLatestCommunicationType } from '../../types/process-with-latest-communication-type';
-import {
-  ListProcessesUseCase,
-  PROCESSES_PAGE_SIZE,
-} from '../../use-cases/list-processes-usecase';
+import { ListProcessesUseCase, PROCESSES_PAGE_SIZE } from '../../use-cases/list-processes-usecase';
 
 describe('ListProcessesUseCase', () => {
   let listProcessesWithLatestCommunication: Mock;
@@ -33,25 +27,24 @@ describe('ListProcessesUseCase', () => {
 
   it('lists processes with their latest communication, applying the fixed page size', async () => {
     const publicationDate = new Date('2026-04-10T12:00:00Z');
-    const repositoryResult: PaginatedResult<ProcessWithLatestCommunicationType> =
-      {
-        items: [
-          {
-            id: 'process-1',
-            processNumber: '0001-23',
-            courtAcronym: 'TJSP',
-            organName: 'Vara 1',
-            communicationType: 'INTIMACAO',
-            publicationDate,
-            content: 'Texto',
-            aiSummary: 'Resumo',
-            recipientNames: 'Alice, Bob',
-          },
-        ],
-        total: 1,
-        page: 1,
-        pageSize: PROCESSES_PAGE_SIZE,
-      };
+    const repositoryResult: PaginatedResult<ProcessWithLatestCommunicationType> = {
+      items: [
+        {
+          id: 'process-1',
+          processNumber: '0001-23',
+          courtAcronym: 'TJSP',
+          organName: 'Vara 1',
+          communicationType: 'INTIMACAO',
+          publicationDate,
+          content: 'Texto',
+          aiSummary: 'Resumo',
+          recipientNames: 'Alice, Bob',
+        },
+      ],
+      total: 1,
+      page: 1,
+      pageSize: PROCESSES_PAGE_SIZE,
+    };
     listProcessesWithLatestCommunication.mockResolvedValue(repositoryResult);
 
     const filters = {
@@ -64,10 +57,7 @@ describe('ListProcessesUseCase', () => {
 
     const result = await useCase.execute(filters);
 
-    expect(listProcessesWithLatestCommunication).toHaveBeenCalledWith(
-      filters,
-      PROCESSES_PAGE_SIZE,
-    );
+    expect(listProcessesWithLatestCommunication).toHaveBeenCalledWith(filters, PROCESSES_PAGE_SIZE);
     expect(result.items).toEqual([
       {
         id: 'process-1',

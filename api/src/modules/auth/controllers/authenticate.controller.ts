@@ -1,15 +1,7 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import {
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
-import {
-  AuthRequestBodySchema,
-  AuthRequestDto,
-} from '../dtos/auth-request-dto';
+import { AuthRequestBodySchema, AuthRequestDto } from '../dtos/auth-request-dto';
 import type { AuthResponseDto } from '../dtos/auth-response-dto';
 import { AuthResponseSchema } from '../dtos/auth-response-dto';
 import { AuthenticateUseCase } from '../use-cases/authenticate-usecase';

@@ -39,11 +39,7 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
-async function seedBatch(
-  batch: ProcessJson[],
-  batchIdx: number,
-  totalBatches: number,
-) {
+async function seedBatch(batch: ProcessJson[], batchIdx: number, totalBatches: number) {
   const processData = batch.map((p) => ({
     processNumber: p.processNumber,
     courtAcronym: p.courtAcronym,
@@ -58,9 +54,7 @@ async function seedBatch(
     where: { processNumber: { in: processNumbers } },
     select: { id: true, processNumber: true },
   });
-  const processIdByNumber = new Map(
-    persistedProcesses.map((p) => [p.processNumber, p.id]),
-  );
+  const processIdByNumber = new Map(persistedProcesses.map((p) => [p.processNumber, p.id]));
 
   const allCommunications = batch.flatMap((p) => {
     const processId = processIdByNumber.get(p.processNumber);
@@ -97,14 +91,8 @@ async function seedBatch(
       recipients: { select: { id: true } },
     },
   });
-  const commIdByExternal = new Map(
-    persistedComms.map((c) => [c.externalId, c.id]),
-  );
-  const commHasRecipients = new Set(
-    persistedComms
-      .filter((c) => c.recipients.length > 0)
-      .map((c) => c.externalId),
-  );
+  const commIdByExternal = new Map(persistedComms.map((c) => [c.externalId, c.id]));
+  const commHasRecipients = new Set(persistedComms.filter((c) => c.recipients.length > 0).map((c) => c.externalId));
 
   const recipientRows = allCommunications.flatMap((c) => {
     if (commHasRecipients.has(c.row.externalId)) return [];
@@ -142,9 +130,7 @@ async function main() {
   const data: SeedFile = JSON.parse(raw) as unknown as SeedFile;
 
   const batches = chunk(data.processes, BATCH_SIZE);
-  console.log(
-    `Loaded ${data.processes.length} processes → ${batches.length} batches of ${BATCH_SIZE}`,
-  );
+  console.log(`Loaded ${data.processes.length} processes → ${batches.length} batches of ${BATCH_SIZE}`);
 
   const totals = { processes: 0, communications: 0, recipients: 0 };
 

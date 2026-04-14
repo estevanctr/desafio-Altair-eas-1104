@@ -17,9 +17,7 @@ import { SummarizeCommunicationUseCase } from '../use-cases/summarize-communicat
 @ApiBearerAuth()
 @Controller('processes')
 export class SummarizeCommunicationController {
-  constructor(
-    private readonly summarizeCommunicationUseCase: SummarizeCommunicationUseCase,
-  ) {}
+  constructor(private readonly summarizeCommunicationUseCase: SummarizeCommunicationUseCase) {}
 
   @Get('communications/:communicationId/summary')
   @UseGuards(JwtAuthGuard)
@@ -36,9 +34,7 @@ export class SummarizeCommunicationController {
   @ApiOkResponse({ type: SummarizeCommunicationResponseSchema })
   @ApiNotFoundResponse({ description: 'Communication not found' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
-  async handle(
-    @Param('communicationId') communicationId: string,
-  ): Promise<SummarizeCommunicationResponseDto> {
+  async handle(@Param('communicationId') communicationId: string): Promise<SummarizeCommunicationResponseDto> {
     return this.summarizeCommunicationUseCase.execute(communicationId);
   }
 }

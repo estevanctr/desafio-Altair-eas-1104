@@ -32,8 +32,6 @@ describe('JwtStrategy', () => {
   it('throws ZodError when payload field types are wrong', () => {
     const strategy = new JwtStrategy(fakeConfig);
 
-    expect(() =>
-      strategy.validate({ sub: 1, email: 'jane@example.com', name: 'Jane' }),
-    ).toThrow(ZodError);
+    expect(() => strategy.validate({ sub: 1, email: 'jane@example.com', name: 'Jane' })).toThrow(ZodError);
   });
 });

@@ -1,5 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { IHashDriver } from '../../../../drivers/hash/contracts/hash-driver';
 import type { IUserRepository } from '../../../user/repository/contracts/user-repository';
 import type { UserType } from '../../../user/types/user-type';
@@ -72,9 +72,7 @@ describe('AuthenticateUseCase', () => {
   it('throws UnauthorizedException when the user does not exist', async () => {
     findByEmail.mockResolvedValue(null);
 
-    await expect(
-      useCase.execute('missing@example.com', 'any'),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(useCase.execute('missing@example.com', 'any')).rejects.toBeInstanceOf(UnauthorizedException);
     expect(compare).not.toHaveBeenCalled();
     expect(generateAccessToken).not.toHaveBeenCalled();
   });
@@ -83,9 +81,7 @@ describe('AuthenticateUseCase', () => {
     findByEmail.mockResolvedValue(existingUser);
     compare.mockResolvedValue(false);
 
-    await expect(
-      useCase.execute(existingUser.email, 'wrong-password'),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(useCase.execute(existingUser.email, 'wrong-password')).rejects.toBeInstanceOf(UnauthorizedException);
     expect(generateAccessToken).not.toHaveBeenCalled();
   });
 

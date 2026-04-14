@@ -9,9 +9,7 @@ describe('CreateUserController', () => {
 
   beforeEach(() => {
     useCase = { execute: vi.fn() };
-    controller = new CreateUserController(
-      useCase as unknown as CreateUserUseCase,
-    );
+    controller = new CreateUserController(useCase as unknown as CreateUserUseCase);
   });
 
   it('delegates to the use case and returns its response', async () => {

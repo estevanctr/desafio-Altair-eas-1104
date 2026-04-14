@@ -2,10 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { IProcessCommunicationsGateway } from '../gateways/contracts/process-communications-gateway';
 import type { IProcessSyncRepository } from '../repository/contracts/process-sync-repository';
 import type { ProcessSyncInput } from '../types/process-sync-input.type';
-import {
-  SCHEDULED_ORGAN_QUERIES,
-  ScheduledOrganQuery,
-} from '../types/scheduled-organ-query.type';
+import { SCHEDULED_ORGAN_QUERIES, ScheduledOrganQuery } from '../types/scheduled-organ-query.type';
 
 export type UpdateProcessesSummary = {
   referenceDate: string;
@@ -91,9 +88,7 @@ export class UpdateProcessesUseCase {
       }
     } catch (error) {
       organError = error instanceof Error ? error.message : String(error);
-      this.logger.error(
-        `[update-processes] failed for ${query.siglaTribunal}/${query.orgaoId}: ${organError}`,
-      );
+      this.logger.error(`[update-processes] failed for ${query.siglaTribunal}/${query.orgaoId}: ${organError}`);
     }
 
     this.logger.log(
@@ -122,8 +117,7 @@ export class UpdateProcessesUseCase {
 
     for (const item of batch) {
       try {
-        const result =
-          await this.processSyncRepository.persistCommunication(item);
+        const result = await this.processSyncRepository.persistCommunication(item);
         if (result.created) created += 1;
         else skipped += 1;
       } catch (error) {
@@ -140,9 +134,7 @@ export class UpdateProcessesUseCase {
 
   private getYesterdayIsoDate(): string {
     const now = new Date();
-    const yesterday = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1),
-    );
+    const yesterday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
     return yesterday.toISOString().slice(0, 10);
   }
 }

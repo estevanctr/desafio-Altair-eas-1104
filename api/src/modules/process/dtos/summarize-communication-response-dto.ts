@@ -8,11 +8,7 @@ export interface SummarizeCommunicationResponseDto {
 }
 
 export const SummarizeCommunicationResponseDto = {
-  toResponseDto(
-    id: string,
-    aiSummary: string,
-    cached: boolean,
-  ): SummarizeCommunicationResponseDto {
+  toResponseDto(id: string, aiSummary: string, cached: boolean): SummarizeCommunicationResponseDto {
     return { id, aiSummary, cached };
   },
 };

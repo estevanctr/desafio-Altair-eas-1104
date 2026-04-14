@@ -21,10 +21,7 @@ export class AuthenticateUseCase {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const passwordMatches = await this.hashDriver.compare(
-      password,
-      user.password,
-    );
+    const passwordMatches = await this.hashDriver.compare(password, user.password);
 
     if (!passwordMatches) {
       throw new UnauthorizedException('Invalid credentials');

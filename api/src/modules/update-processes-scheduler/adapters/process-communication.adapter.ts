@@ -4,9 +4,7 @@ import { ProcessSyncInput } from '../types/process-sync-input.type';
 export class ProcessCommunicationAdapter {
   static toSyncInput(item: ProcessApiItem): ProcessSyncInput {
     const content = item.texto ?? '';
-    const hasFinalJudgment = content
-      .toLowerCase()
-      .includes('transitou em julgado');
+    const hasFinalJudgment = content.toLowerCase().includes('transitou em julgado');
 
     return {
       process: {

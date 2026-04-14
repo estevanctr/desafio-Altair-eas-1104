@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import type { IAIDriver } from '../../../../drivers/ai/contracts/ai-driver';
 import type { IProcessRepository } from '../../repository/contracts/process-repository';
 import type { CommunicationType } from '../../types/communication-type';
@@ -65,10 +65,7 @@ describe('SummarizeCommunicationUseCase', () => {
 
     expect(findCommunicationById).toHaveBeenCalledWith(communicationId);
     expect(generateCompletion).toHaveBeenCalledTimes(1);
-    expect(updateCommunicationAiSummary).toHaveBeenCalledWith(
-      communicationId,
-      'Resumo gerado pela IA.',
-    );
+    expect(updateCommunicationAiSummary).toHaveBeenCalledWith(communicationId, 'Resumo gerado pela IA.');
     expect(result).toEqual({
       id: communicationId,
       aiSummary: 'Resumo gerado pela IA.',
@@ -96,9 +93,7 @@ describe('SummarizeCommunicationUseCase', () => {
   it('throws NotFoundException when the communication does not exist', async () => {
     findCommunicationById.mockResolvedValue(null);
 
-    await expect(useCase.execute(communicationId)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(useCase.execute(communicationId)).rejects.toBeInstanceOf(NotFoundException);
 
     expect(generateCompletion).not.toHaveBeenCalled();
   });

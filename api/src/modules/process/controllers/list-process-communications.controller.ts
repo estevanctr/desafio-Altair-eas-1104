@@ -21,9 +21,7 @@ import { ListProcessCommunicationsUseCase } from '../use-cases/list-process-comm
 @ApiBearerAuth()
 @Controller('processes')
 export class ListProcessCommunicationsController {
-  constructor(
-    private readonly listProcessCommunicationsUseCase: ListProcessCommunicationsUseCase,
-  ) {}
+  constructor(private readonly listProcessCommunicationsUseCase: ListProcessCommunicationsUseCase) {}
 
   @Get(':processId/communications')
   @UseGuards(JwtAuthGuard)

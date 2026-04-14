@@ -74,8 +74,7 @@ export const ListProcessCommunicationsResponseDto = {
       total: result.total,
       page: result.page,
       pageSize: result.pageSize,
-      totalPages:
-        result.pageSize > 0 ? Math.ceil(result.total / result.pageSize) : 0,
+      totalPages: result.pageSize > 0 ? Math.ceil(result.total / result.pageSize) : 0,
     };
   },
 };

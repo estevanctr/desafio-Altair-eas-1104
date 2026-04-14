@@ -6,10 +6,7 @@ import type { ListProcessCommunicationsRequest } from '../types/list-process-com
 import type { ListProcessesRequest } from '../types/list-processes-request-type';
 import type { ProcessType } from '../types/process-type';
 import type { ProcessWithLatestCommunicationType } from '../types/process-with-latest-communication-type';
-import type {
-  IProcessRepository,
-  PaginatedResult,
-} from './contracts/process-repository';
+import type { IProcessRepository, PaginatedResult } from './contracts/process-repository';
 import { CommunicationMapper } from './mappers/communication-mapper';
 import { ProcessMapper } from './mappers/process-mapper';
 
@@ -41,38 +38,26 @@ export class ProcessRepository implements IProcessRepository {
     const innerWhereClauses: Prisma.Sql[] = [];
 
     if (filters.courtAcronym) {
-      innerWhereClauses.push(
-        Prisma.sql`p."courtAcronym" = ${filters.courtAcronym}`,
-      );
+      innerWhereClauses.push(Prisma.sql`p."courtAcronym" = ${filters.courtAcronym}`);
     }
     if (filters.processNumber) {
-      innerWhereClauses.push(
-        Prisma.sql`p."processNumber" = ${filters.processNumber}`,
-      );
+      innerWhereClauses.push(Prisma.sql`p."processNumber" = ${filters.processNumber}`);
     }
 
     const innerWhereSql =
-      innerWhereClauses.length > 0
-        ? Prisma.sql`WHERE ${Prisma.join(innerWhereClauses, ' AND ')}`
-        : Prisma.empty;
+      innerWhereClauses.length > 0 ? Prisma.sql`WHERE ${Prisma.join(innerWhereClauses, ' AND ')}` : Prisma.empty;
 
     const outerWhereClauses: Prisma.Sql[] = [];
 
     if (filters.publicationDateFrom) {
-      outerWhereClauses.push(
-        Prisma.sql`latest."publicationDate" >= ${filters.publicationDateFrom}`,
-      );
+      outerWhereClauses.push(Prisma.sql`latest."publicationDate" >= ${filters.publicationDateFrom}`);
     }
     if (filters.publicationDateTo) {
-      outerWhereClauses.push(
-        Prisma.sql`latest."publicationDate" <= ${filters.publicationDateTo}`,
-      );
+      outerWhereClauses.push(Prisma.sql`latest."publicationDate" <= ${filters.publicationDateTo}`);
     }
 
     const outerWhereSql =
-      outerWhereClauses.length > 0
-        ? Prisma.sql`WHERE ${Prisma.join(outerWhereClauses, ' AND ')}`
-        : Prisma.empty;
+      outerWhereClauses.length > 0 ? Prisma.sql`WHERE ${Prisma.join(outerWhereClauses, ' AND ')}` : Prisma.empty;
 
     const rows = await this.prisma.$queryRaw<RawProcessWithLatestCommunicationRow[]>`
       SELECT
@@ -152,10 +137,7 @@ export class ProcessRepository implements IProcessRepository {
     return record ? CommunicationMapper.toDomain(record) : null;
   }
 
-  async updateCommunicationAiSummary(
-    id: string,
-    aiSummary: string,
-  ): Promise<CommunicationType> {
+  async updateCommunicationAiSummary(id: string, aiSummary: string): Promise<CommunicationType> {
     const record = await this.prisma.communication.update({
       where: { id },
       data: { aiSummary },
