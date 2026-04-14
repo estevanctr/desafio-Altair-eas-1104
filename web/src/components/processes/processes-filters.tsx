@@ -1,11 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { CalendarDays, Search } from "lucide-react";
+import { CalendarDays, Search, X } from "lucide-react";
+import { ptBR } from "date-fns/locale/pt-BR";
+import { format } from "date-fns/format";
+import type { DateRange } from "react-day-picker";
 
 import { cn } from "@/lib/cn";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -13,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 const COURTS = ["TRT10", "TJTO", "TJRS"] as const;
 
@@ -72,11 +81,12 @@ function ProcessesFilters({ value, onChange }: ProcessesFiltersProps) {
           <DateRangeField
             from={value.publicationDateFrom}
             to={value.publicationDateTo}
-            onFromChange={(next) =>
-              onChange({ ...value, publicationDateFrom: next })
-            }
-            onToChange={(next) =>
-              onChange({ ...value, publicationDateTo: next })
+            onRangeChange={(from, to) =>
+              onChange({
+                ...value,
+                publicationDateFrom: from,
+                publicationDateTo: to,
+              })
             }
           />
         </div>
@@ -88,78 +98,85 @@ function ProcessesFilters({ value, onChange }: ProcessesFiltersProps) {
 type DateRangeFieldProps = {
   from: string;
   to: string;
-  onFromChange: (next: string) => void;
-  onToChange: (next: string) => void;
+  onRangeChange: (from: string, to: string) => void;
 };
 
-function DateRangeField({
-  from,
-  to,
-  onFromChange,
-  onToChange,
-}: DateRangeFieldProps) {
-  const hasAny = Boolean(from || to);
-  const [expanded, setExpanded] = useState(hasAny);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const fromRef = useRef<HTMLInputElement>(null);
+function parseIsoDate(value: string): Date | undefined {
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
+}
 
-  React.useEffect(() => {
-    if (hasAny && !expanded) setExpanded(true);
-  }, [hasAny, expanded]);
+function toIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-  function handleBlur(event: React.FocusEvent<HTMLDivElement>) {
-    if (containerRef.current?.contains(event.relatedTarget as Node | null)) {
-      return;
+function DateRangeField({ from, to, onRangeChange }: DateRangeFieldProps) {
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState<DateRange | undefined>(undefined);
+  const hasValue = Boolean(from && to);
+
+  const label = hasValue
+    ? `${format(parseIsoDate(from)!, "dd/MM/yyyy")} - ${format(parseIsoDate(to)!, "dd/MM/yyyy")}`
+    : "Data inicial - Data final";
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      setPending({ from: parseIsoDate(from), to: parseIsoDate(to) });
     }
-    if (!from && !to) setExpanded(false);
+    setOpen(nextOpen);
   }
 
-  if (!expanded) {
-    return (
-      <button
-        type="button"
-        onClick={() => {
-          setExpanded(true);
-          window.setTimeout(() => fromRef.current?.focus(), 0);
-        }}
-        className={cn(
-          "flex h-10 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-sm text-muted-foreground transition-colors outline-none hover:bg-accent/40 dark:bg-input/30",
-          "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-        )}
-      >
-        <CalendarDays className="size-4 shrink-0" aria-hidden />
-        <span>Data inicial - Data final</span>
-      </button>
-    );
+  function handleSelect(range: DateRange | undefined) {
+    setPending(range);
+    if (range?.from && range.to) {
+      onRangeChange(toIsoDate(range.from), toIsoDate(range.to));
+      setOpen(false);
+    }
+  }
+
+  function handleClear(event: React.MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    onRangeChange("", "");
   }
 
   return (
-    <div
-      ref={containerRef}
-      onBlur={handleBlur}
-      className={cn(
-        "flex h-10 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-sm text-muted-foreground dark:bg-input/30",
-        "focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
-      )}
-    >
-      <CalendarDays className="size-4 shrink-0" aria-hidden />
-      <input
-        ref={fromRef}
-        type="date"
-        aria-label="Data inicial"
-        className="w-[120px] bg-transparent text-foreground outline-none"
-        value={from}
-        onChange={(event) => onFromChange(event.target.value)}
-      />
-      <span aria-hidden>—</span>
-      <input
-        type="date"
-        aria-label="Data final"
-        className="w-[120px] bg-transparent text-foreground outline-none"
-        value={to}
-        onChange={(event) => onToChange(event.target.value)}
-      />
-    </div>
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger
+        className={cn(
+          "flex h-10 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-sm transition-colors outline-none hover:bg-accent/40 dark:bg-input/30",
+          "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+          hasValue ? "text-foreground" : "text-muted-foreground",
+        )}
+      >
+        <CalendarDays className="size-4 shrink-0" aria-hidden />
+        <span>{label}</span>
+        {hasValue ? (
+          <X
+            role="button"
+            aria-label="Limpar datas"
+            className="ml-1 size-3.5 text-muted-foreground hover:text-foreground"
+            onClick={handleClear}
+          />
+        ) : null}
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-auto p-0">
+        <Calendar
+          mode="range"
+          min={1}
+          numberOfMonths={2}
+          locale={ptBR}
+          defaultMonth={parseIsoDate(from) ?? new Date()}
+          selected={pending}
+          onSelect={handleSelect}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
 
