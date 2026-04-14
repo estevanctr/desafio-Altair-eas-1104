@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { AppHeader } from "@/components/app-header";
 import { AppSidebar } from "@/components/app-sidebar";
+import { useState } from "react";
 
 type AppShellProps = {
   user: { name: string | null; email: string | null };
@@ -11,7 +12,7 @@ type AppShellProps = {
 };
 
 function AppShell({ user, children }: AppShellProps) {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div data-slot="app-shell" className="flex min-h-screen bg-muted/40">

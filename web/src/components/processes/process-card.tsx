@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   CalendarDays,
   FileText,
@@ -47,50 +48,73 @@ function Field({
 
 function ProcessCard({ process }: { process: Process }) {
   const {
+    id,
     processNumber,
     courtAcronym,
     organName,
-    latestCommunication: { communicationType, publicationDate, content, recipients },
+    latestCommunication: {
+      communicationType,
+      publicationDate,
+      content,
+      recipients,
+    },
   } = process;
 
   const contentPreview = htmlToPlainText(content);
 
   return (
-    <Card data-slot="process-card">
-      <CardContent className="relative flex flex-col gap-4 py-1">
-        <div className="absolute top-0 right-4">
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Sparkles className="size-3.5" aria-hidden />
-            Resumir
-          </Button>
-        </div>
+    <Link
+      href={`/process/${id}`}
+      aria-label={`Abrir detalhes do processo ${processNumber}`}
+      className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+    >
+      <Card
+        data-slot="process-card"
+        className="transition-colors hover:ring-primary/40"
+      >
+        <CardContent className="relative flex flex-col gap-4 py-1">
+          <div className="absolute top-0 right-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+            >
+              <Sparkles className="size-3.5" aria-hidden />
+              Resumir
+            </Button>
+          </div>
 
-        <div className="grid gap-4 pr-24 md:grid-cols-2">
-          <Field icon={Scale} label="Processo">
-            {processNumber} - {organName}
-          </Field>
-          <Field icon={CalendarDays} label="Data">
-            {formatDate(publicationDate)}
-          </Field>
-          <Field icon={Gavel} label="Tribunal">
-            {courtAcronym}
-          </Field>
-          <Field icon={Info} label="Tipo da comunicação">
-            {communicationType}
-          </Field>
-        </div>
+          <div className="grid gap-4 pr-24 md:grid-cols-2">
+            <Field icon={Scale} label="Processo">
+              {processNumber} - {organName}
+            </Field>
+            <Field icon={CalendarDays} label="Data">
+              {formatDate(publicationDate)}
+            </Field>
+            <Field icon={Gavel} label="Tribunal">
+              {courtAcronym}
+            </Field>
+            <Field icon={Info} label="Tipo da comunicação">
+              {communicationType}
+            </Field>
+          </div>
 
-        <Field icon={Users} label="Destinatários">
-          {recipients.length > 0 ? recipients.join(", ") : "—"}
-        </Field>
+          <Field icon={Users} label="Destinatários">
+            {recipients.length > 0 ? recipients.join(", ") : "—"}
+          </Field>
 
-        <Field icon={FileText} label="Conteúdo">
-          <p className="line-clamp-3 text-sm leading-relaxed text-foreground">
-            {contentPreview}
-          </p>
-        </Field>
-      </CardContent>
-    </Card>
+          <Field icon={FileText} label="Conteúdo">
+            <p className="line-clamp-3 text-sm leading-relaxed text-foreground">
+              {contentPreview}
+            </p>
+          </Field>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 

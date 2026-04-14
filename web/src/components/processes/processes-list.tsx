@@ -10,6 +10,7 @@ import {
 } from "@/components/processes/processes-filters";
 import { ProcessCard } from "@/components/processes/process-card";
 import { ProcessesPagination } from "@/components/processes/processes-pagination";
+import { useEffect, useMemo, useState } from "react";
 
 const INITIAL_FILTERS: ProcessesFiltersValue = {
   processNumber: "",
@@ -26,8 +27,8 @@ function toIsoDateOrUndefined(value: string): string | undefined {
 }
 
 function useDebounced<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = React.useState(value);
-  React.useEffect(() => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
     const timer = window.setTimeout(() => setDebounced(value), delayMs);
     return () => window.clearTimeout(timer);
   }, [value, delayMs]);
@@ -35,26 +36,22 @@ function useDebounced<T>(value: T, delayMs: number): T {
 }
 
 function ProcessesList() {
-  const [filters, setFilters] =
-    React.useState<ProcessesFiltersValue>(INITIAL_FILTERS);
-  const [page, setPage] = React.useState(1);
+  const [filters, setFiltersState] =
+    useState<ProcessesFiltersValue>(INITIAL_FILTERS);
+  const [page, setPage] = useState(1);
+
+  function setFilters(next: ProcessesFiltersValue) {
+    setFiltersState(next);
+    setPage(1);
+  }
 
   const debouncedProcessNumber = useDebounced(filters.processNumber, 400);
-
-  React.useEffect(() => {
-    setPage(1);
-  }, [
-    debouncedProcessNumber,
-    filters.courtAcronym,
-    filters.publicationDateFrom,
-    filters.publicationDateTo,
-  ]);
 
   const dateFrom = toIsoDateOrUndefined(filters.publicationDateFrom);
   const dateTo = toIsoDateOrUndefined(filters.publicationDateTo);
   const bothDates = dateFrom && dateTo;
 
-  const queryFilters = React.useMemo(
+  const queryFilters = useMemo(
     () => ({
       page,
       processNumber: debouncedProcessNumber.trim() || undefined,
@@ -62,7 +59,14 @@ function ProcessesList() {
       publicationDateFrom: bothDates ? dateFrom : undefined,
       publicationDateTo: bothDates ? dateTo : undefined,
     }),
-    [page, debouncedProcessNumber, filters.courtAcronym, bothDates, dateFrom, dateTo],
+    [
+      page,
+      debouncedProcessNumber,
+      filters.courtAcronym,
+      bothDates,
+      dateFrom,
+      dateTo,
+    ],
   );
 
   const { data, isLoading, isError, error } = useProcesses(queryFilters);

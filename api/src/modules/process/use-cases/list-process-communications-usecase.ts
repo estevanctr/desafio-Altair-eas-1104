@@ -25,6 +25,6 @@ export class ListProcessCommunicationsUseCase {
       COMMUNICATIONS_PAGE_SIZE,
     );
 
-    return ListProcessCommunicationsResponseDto.toResponseDto(result);
+    return ListProcessCommunicationsResponseDto.toResponseDto(process, result);
   }
 }

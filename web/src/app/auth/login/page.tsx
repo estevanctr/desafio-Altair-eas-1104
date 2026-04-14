@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/actions/auth/signIn";
+import { useState, useTransition } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [isPending, startTransition] = React.useTransition();
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -134,10 +135,7 @@ export default function LoginPage() {
               </div>
 
               {errorMessage ? (
-                <p
-                  role="alert"
-                  className="text-sm text-red-600"
-                >
+                <p role="alert" className="text-sm text-red-600">
                   {errorMessage}
                 </p>
               ) : null}

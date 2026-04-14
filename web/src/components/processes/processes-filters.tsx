@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRef, useState } from "react";
 
 const COURTS = ["TRT10", "TJTO", "TJRS"] as const;
 
@@ -98,9 +99,9 @@ function DateRangeField({
   onToChange,
 }: DateRangeFieldProps) {
   const hasAny = Boolean(from || to);
-  const [expanded, setExpanded] = React.useState(hasAny);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const fromRef = React.useRef<HTMLInputElement>(null);
+  const [expanded, setExpanded] = useState(hasAny);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const fromRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (hasAny && !expanded) setExpanded(true);

@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import type { PaginatedResult } from '../repository/contracts/process-repository';
 import type { CommunicationType } from '../types/communication-type';
+import type { ProcessType } from '../types/process-type';
 
 export interface CommunicationRecipientDto {
   id: string;
@@ -23,7 +24,16 @@ export interface CommunicationItemDto {
   recipients: CommunicationRecipientDto[];
 }
 
+export interface ProcessSummaryDto {
+  id: string;
+  processNumber: string;
+  courtAcronym: string;
+  organName: string;
+  hasFinalJudgment: boolean;
+}
+
 export interface ListProcessCommunicationsResponseDto {
+  process: ProcessSummaryDto;
   items: CommunicationItemDto[];
   total: number;
   page: number;
@@ -33,9 +43,17 @@ export interface ListProcessCommunicationsResponseDto {
 
 export const ListProcessCommunicationsResponseDto = {
   toResponseDto(
+    process: ProcessType,
     result: PaginatedResult<CommunicationType>,
   ): ListProcessCommunicationsResponseDto {
     return {
+      process: {
+        id: process.id,
+        processNumber: process.processNumber,
+        courtAcronym: process.courtAcronym,
+        organName: process.organName,
+        hasFinalJudgment: process.hasFinalJudgment,
+      },
       items: result.items.map((communication) => ({
         id: communication.id,
         externalId: communication.externalId,
@@ -82,8 +100,17 @@ const communicationItemSchema = z.object({
   recipients: z.array(recipientSchema),
 });
 
+const processSummarySchema = z.object({
+  id: z.uuid(),
+  processNumber: z.string(),
+  courtAcronym: z.string(),
+  organName: z.string(),
+  hasFinalJudgment: z.boolean(),
+});
+
 export class ListProcessCommunicationsResponseSchema extends createZodDto(
   z.object({
+    process: processSummarySchema,
     items: z.array(communicationItemSchema),
     total: z.number().int(),
     page: z.number().int(),

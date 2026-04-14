@@ -88,6 +88,13 @@ describe('ListProcessCommunicationsUseCase', () => {
     expect(result.page).toBe(1);
     expect(result.pageSize).toBe(COMMUNICATIONS_PAGE_SIZE);
     expect(result.totalPages).toBe(1);
+    expect(result.process).toEqual({
+      id: existingProcess.id,
+      processNumber: existingProcess.processNumber,
+      courtAcronym: existingProcess.courtAcronym,
+      organName: existingProcess.organName,
+      hasFinalJudgment: existingProcess.hasFinalJudgment,
+    });
     expect(result.items).toHaveLength(1);
     expect(result.items[0]).toMatchObject({
       id: 'comm-1',
