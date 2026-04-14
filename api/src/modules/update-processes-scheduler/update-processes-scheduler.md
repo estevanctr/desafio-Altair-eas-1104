@@ -19,23 +19,24 @@ The module follows a layered architecture with dependency inversion via Nest tok
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                UpdateProcessesUseCase                       │
-│    Orchestrates the flow per organ, aggregates metrics     │
+│    Orchestrates the flow per organ, aggregates metrics      │
 └─────────┬──────────────────────────────────┬────────────────┘
           │                                  │
           │ streamCommunications              │ persistCommunication
+          │  → ProcessSyncInput[]             │  (ProcessSyncInput)
           ▼                                  ▼
-┌────────────────────────────┐   ┌────────────────────────────┐
+┌─────────────────────────────┐   ┌────────────────────────────┐
 │ ProcessCommunicationsGateway│   │   ProcessSyncRepository    │
-│   (HTTP + pagination)      │   │   (Prisma + transaction)   │
-└──────────────┬─────────────┘   └──────────────┬─────────────┘
-               │                                │
-               ▼                                ▼
-   ┌───────────────────────┐        ┌────────────────────────┐
-   │ ProcessCommunication  │        │        Database        │
-   │      Adapter          │        │ (Process, Communication│
-   │ (API → ProcessSync    │        │        Recipient)      │
-   │       Input)          │        └────────────────────────┘
-   └───────────────────────┘
+│   (HTTP + pagination)       │   │   (Prisma + transaction)   │
+│                             │   └──────────────┬─────────────┘
+│   uses                      │                  │
+│   ProcessCommunicationAdapter                  │
+│   (API → ProcessSyncInput)  │                  ▼
+└─────────────────────────────┘       ┌────────────────────────┐
+                                      │        Database        │
+                                      │ (Process, Communication│
+                                      │        Recipient)      │
+                                      └────────────────────────┘
 ```
 
 ### Layers and responsibilities
@@ -70,7 +71,7 @@ To monitor a new organ, just add an entry to this array.
 
 3. **Paginated API fetch** — `ProcessCommunicationsGateway.streamCommunications` is an async generator that builds the query with `siglaTribunal`, `orgaoId` and the `dataDisponibilizacaoInicio/Fim` window and yields one batch per page (100 items at a time, `ITEMS_PER_PAGE`). The use case consumes each batch as it arrives, so memory stays bounded to a single page regardless of total volume. Between pages the gateway waits `DELAY_BETWEEN_PAGES_MS` (1s) to proactively avoid 429s. Each request goes through `requestWithTimeout`, which aborts after `REQUEST_TIMEOUT_MS` (30s) via `AbortController`, preventing the job from hanging on a stuck connection. The retry policy per page has two independent budgets:
    - **Rate limit (`429`)** — on hit, logs a warning, sleeps `RATE_LIMIT_COOLDOWN_MS` (60s) and retries the same page up to `MAX_RATE_LIMIT_RETRIES` (3) times before giving up.
-   - **Transient failures (`5xx` status, network errors, timeouts)** — retries with an exponential backoff schedule `SERVER_ERROR_BACKOFF_MS` (2s → 4s → 8s), up to `MAX_SERVER_ERROR_RETRIES` (3) times.
+   - **Transient failures (`5xx` status, network errors, timeouts)** — retries with an exponential backoff schedule `TRANSIENT_BACKOFF_MS` (2s → 4s → 8s), up to `MAX_TRANSIENT_RETRIES` (3) times. Network/timeout failures and `5xx` responses have **independent** retry counters, so a page alternating between both failure types may retry up to 6 times combined before giving up.
 
    Other non-`ok` statuses (`4xx` other than `429`) throw immediately, interrupting only that organ's processing. The loop stops when `count` (from the payload) has been reached, when the response is empty, or — as a fallback — when a page returns fewer items than the page size.
 
@@ -103,6 +104,6 @@ execute(): Promise<UpdateProcessesSummary>
 - **Idempotent** — re-running on the same reference date never duplicates communications (checked by `externalId`).
 - **Resilient to partial failures** — failures are isolated at two levels: (1) an error on one organ does not abort the others, and (2) an error on a single item does not abort the remaining items of the same organ. Both surfaces land on the summary (`perOrgan[].error` for organ-level, `failed` counter for item-level).
 - **Rate-limit aware** — the gateway throttles 1s between pages and, on `429`, sleeps 60s and retries the same page up to 3 times before giving up.
-- **Transient failure aware** — `5xx`, network errors and timeouts retry with exponential backoff (2s → 4s → 8s, up to 3 attempts). A per-request timeout of 30s prevents the job from hanging indefinitely.
+- **Transient failure aware** — `5xx`, network errors and timeouts retry with exponential backoff (2s → 4s → 8s, up to 3 attempts per category — network and server errors track their retry budgets independently). A per-request timeout of 30s prevents the job from hanging indefinitely.
 - **Transactional** — each communication is persisted inside a Prisma transaction, keeping `Process`, `Communication` and `Recipient` consistent.
 - **Decoupled** — the use case depends only on interfaces; swapping the HTTP source or the persistence mechanism does not require touching the business rule.

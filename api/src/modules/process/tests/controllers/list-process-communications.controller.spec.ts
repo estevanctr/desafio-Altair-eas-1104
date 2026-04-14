@@ -16,6 +16,13 @@ describe('ListProcessCommunicationsController', () => {
 
   it('delegates to the use case with the processId from the route and the page from the query', async () => {
     const response: ListProcessCommunicationsResponseDto = {
+      process: {
+        id: 'process-1',
+        processNumber: '0000000-00.0000.0.00.0000',
+        courtAcronym: 'TRT10',
+        organName: 'Vara do Trabalho',
+        hasFinalJudgment: false,
+      },
       items: [],
       total: 0,
       page: 3,

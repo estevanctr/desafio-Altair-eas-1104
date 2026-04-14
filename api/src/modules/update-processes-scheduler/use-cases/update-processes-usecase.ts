@@ -72,7 +72,7 @@ export class UpdateProcessesUseCase {
     let created = 0;
     let skipped = 0;
     let failed = 0;
-    let error: string | undefined;
+    let organError: string | undefined;
 
     try {
       const batches = this.processCommunicationsGateway.streamCommunications({
@@ -90,9 +90,9 @@ export class UpdateProcessesUseCase {
         failed += batchInfos.failed;
       }
     } catch (error) {
-      const finalError = error instanceof Error ? error.message : String(error);
+      organError = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `[update-processes] failed for ${query.siglaTribunal}/${query.orgaoId}: ${finalError}`,
+        `[update-processes] failed for ${query.siglaTribunal}/${query.orgaoId}: ${organError}`,
       );
     }
 
@@ -108,7 +108,7 @@ export class UpdateProcessesUseCase {
       created,
       skipped,
       failed,
-      ...(error !== undefined && { error }),
+      ...(organError !== undefined && { error: organError }),
     };
   }
 
