@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { CalendarDays, FileText, Sparkles, Users } from "lucide-react";
+import { CalendarDays, FileText, Users } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { CommunicationSummaryDialog } from "@/components/processes/communication-summary-dialog";
 import { htmlToRichText } from "@/lib/html-to-text";
 import type { ProcessCommunicationItem } from "@/types/process";
 
@@ -70,15 +70,7 @@ function CommunicationCard({ item }: { item: ProcessCommunicationItem }) {
     <Card data-slot="communication-card">
       <CardContent className="relative flex flex-col gap-4 py-1">
         <div className="absolute top-0 right-4">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-          >
-            <Sparkles className="size-3.5" aria-hidden />
-            Resumir
-          </Button>
+          <CommunicationSummaryDialog communicationId={item.id} />
         </div>
 
         <div className="pr-24">

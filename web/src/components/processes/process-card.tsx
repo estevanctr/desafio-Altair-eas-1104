@@ -7,11 +7,9 @@ import {
   Gavel,
   Info,
   Scale,
-  Sparkles,
   Users,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { htmlToPlainText } from "@/lib/html-to-text";
 import type { Process } from "@/types/process";
@@ -73,22 +71,7 @@ function ProcessCard({ process }: { process: Process }) {
         className="transition-colors hover:ring-primary/40"
       >
         <CardContent className="relative flex flex-col gap-4 py-1">
-          <div className="absolute top-0 right-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-              }}
-            >
-              <Sparkles className="size-3.5" aria-hidden />
-              Resumir
-            </Button>
-          </div>
-
-          <div className="grid gap-4 pr-24 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <Field icon={Scale} label="Processo">
               {processNumber} - {organName}
             </Field>
