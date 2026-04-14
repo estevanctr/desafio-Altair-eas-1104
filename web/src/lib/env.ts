@@ -5,4 +5,13 @@ const schema = z.object({
   AUTH_SECRET: z.string().min(32),
 });
 
-export const env = schema.parse(process.env);
+type Env = z.infer<typeof schema>;
+
+let cached: Env | undefined;
+
+export const env = new Proxy({} as Env, {
+  get(_target, prop: string) {
+    if (!cached) cached = schema.parse(process.env);
+    return cached[prop as keyof Env];
+  },
+});

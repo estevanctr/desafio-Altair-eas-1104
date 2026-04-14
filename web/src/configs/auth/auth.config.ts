@@ -1,8 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
-import { env } from "@/lib/env";
 
 export const authConfig = {
-  secret: env.AUTH_SECRET,
   session: { strategy: "jwt", maxAge: 60 * 60 * 2 },
   pages: { signIn: "/auth/login" },
   providers: [],
