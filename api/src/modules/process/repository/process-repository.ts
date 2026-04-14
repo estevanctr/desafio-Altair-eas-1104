@@ -144,6 +144,26 @@ export class ProcessRepository implements IProcessRepository {
     return record ? ProcessMapper.toDomain(record) : null;
   }
 
+  async findCommunicationById(id: string): Promise<CommunicationType | null> {
+    const record = await this.prisma.communication.findUnique({
+      where: { id },
+      include: { recipients: true },
+    });
+    return record ? CommunicationMapper.toDomain(record) : null;
+  }
+
+  async updateCommunicationAiSummary(
+    id: string,
+    aiSummary: string,
+  ): Promise<CommunicationType> {
+    const record = await this.prisma.communication.update({
+      where: { id },
+      data: { aiSummary },
+      include: { recipients: true },
+    });
+    return CommunicationMapper.toDomain(record);
+  }
+
   async listCommunicationsByProcess(
     input: ListProcessCommunicationsRequest,
     pageSize: number,

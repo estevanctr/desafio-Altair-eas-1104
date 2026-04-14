@@ -15,6 +15,9 @@ export const envSchema = z.object({
   JWT_PRIVATE_KEY: z.string().min(1),
   JWT_PUBLIC_KEY: z.string().min(1),
   JWT_ACCESS_TOKEN_EXPIRES_IN: z.string().min(1).default('2h'),
+
+  GROQ_API_KEY: z.string().min(1),
+  GROQ_MODEL: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -24,6 +24,8 @@ describe('ListProcessesUseCase', () => {
       listProcessesWithLatestCommunication,
       findById,
       listCommunicationsByProcess,
+      findCommunicationById: vi.fn(),
+      updateCommunicationAiSummary: vi.fn(),
     };
 
     useCase = new ListProcessesUseCase(processRepository);

@@ -23,4 +23,11 @@ export interface IProcessRepository {
     input: ListProcessCommunicationsRequest,
     pageSize: number,
   ): Promise<PaginatedResult<CommunicationType>>;
+
+  findCommunicationById(id: string): Promise<CommunicationType | null>;
+
+  updateCommunicationAiSummary(
+    id: string,
+    aiSummary: string,
+  ): Promise<CommunicationType>;
 }

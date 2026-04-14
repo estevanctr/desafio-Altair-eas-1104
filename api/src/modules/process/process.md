@@ -73,6 +73,25 @@ Handled by [list-process-communications.controller.ts](controllers/list-process-
 
 **Response shape:** `items` (communications with recipients), `total`, `page`, `pageSize`, and `totalPages`.
 
+### `GET /processes/communications/:communicationId/summary` — Generate AI Summary for a Communication
+
+Handled by [summarize-communication.controller.ts](controllers/summarize-communication.controller.ts) and executed by [summarize-communication-usecase.ts](use-cases/summarize-communication-usecase.ts).
+
+**Purpose:** generate a plain-language summary of a judicial communication using an LLM, persist it on the communication row, and return it. Subsequent requests for the same communication return the cached summary without hitting the LLM.
+
+**Parameters:**
+- `communicationId` *(route param)* — UUID of the target communication. No body is required — the communication (and its recipients) is loaded from the database.
+
+**Flow:**
+1. The use case calls `processRepository.findCommunicationById(communicationId)` (which eager-loads recipients); if the record does not exist it throws `NotFoundException`.
+2. If the stored `aiSummary` is already populated, it is returned immediately (`cached: true`) — the LLM is **not** called.
+3. Otherwise the use case composes a prompt (fixed system instructions + structured user content built from the persisted communication and its recipients) and delegates generation to the `IAIDriver` contract, adapted by `GroqAIDriver` using the model configured via `GROQ_MODEL`.
+4. The returned text is persisted through `processRepository.updateCommunicationAiSummary` and exposed in the response (`cached: false`).
+
+**AI integration:** the LLM is consumed through the agnostic [`IAIDriver`](../../drivers/ai/contracts/ai-driver.ts) contract provided by the [AI driver module](../../drivers/ai/ai.md). Swapping providers (Groq → OpenAI, Anthropic, etc.) only requires a new adapter — consumers are unaffected.
+
+**Response shape:** `{ id: string, aiSummary: string, cached: boolean }`.
+
 ## Repository Contract
 
 Defined in [contracts/process-repository.ts](repository/contracts/process-repository.ts):
@@ -90,6 +109,13 @@ interface IProcessRepository {
     input: ListProcessCommunicationsRequest,
     pageSize: number,
   ): Promise<PaginatedResult<CommunicationType>>;
+
+  findCommunicationById(id: string): Promise<CommunicationType | null>;
+
+  updateCommunicationAiSummary(
+    id: string,
+    aiSummary: string,
+  ): Promise<CommunicationType>;
 }
 ```
 
