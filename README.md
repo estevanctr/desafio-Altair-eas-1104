@@ -14,7 +14,7 @@ Ambos os projetos podem acessados pela internet através do dos links:
 
 ### Observação:
 
-Como ambos os serviços foram submetidos na camada gratuita do Render, pode ser que num primeiro momento a utilização do site (login, cadastro, etc.) se apresente lenta por alguns segundos, o que vai ocorrer pelo fato de a api ficar em standby em periodos de inatividade. Após 50 segundos de inicialização os servicos responderão normalmente.
+Como ambos os serviços foram submetidos na camada gratuita do Render ambos ficam em estado de standby após um tempo sem uso. Para garantir um tempo de resposta bom do sistema online abra ambos os links acima (web e api) e caso a tela de inicialização do Render apareça aguarde o carregamento das aplicações. Devido a esta mesma questão do plano gratuito a CRON Job que carrega os dados da api externa pode não funcionar no horario agendado pela api estar em StandBy, para validar a CRON Job em tempo real acesse a observação 3 abaixo para testar localmente de forma facilitada.
 
 Apesar deste README principal estar escrito em PT-BR para fins de apresentação inicial, os demais
 READMEs internos estão escritos em inglês, para fins de manter a padronização e consistência do projeto, bem como também otimizar a leitura de contexto por ferramentas da IA.
