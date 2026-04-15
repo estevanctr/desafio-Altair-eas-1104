@@ -24,11 +24,12 @@ docker compose up --build
 
 This starts three services: `postgres`, `api`, and `web`. The exposed ports are defined in `.env`.
 
-## Running the API seeds
+## Running the API migrations and seeds
 
-With the containers running, execute the seed inside the API container:
+With the containers running, first apply the database migrations and then execute the seeds inside the API container:
 
 ```bash
+docker compose exec api npx prisma migrate deploy
 docker compose exec api npx prisma db seed
 ```
 
