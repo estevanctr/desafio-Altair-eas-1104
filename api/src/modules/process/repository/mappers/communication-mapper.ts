@@ -1,3 +1,4 @@
+import type { CommunicationSource } from '../../../../../generated/prisma/client';
 import type { CommunicationType } from '../../types/communication-type';
 import type { RecipientType } from '../../types/recipient-type';
 
@@ -16,7 +17,7 @@ type PrismaCommunicationRecord = {
   publicationDate: Date;
   communicationType: string;
   content: string;
-  source: string | null;
+  source: CommunicationSource | null;
   aiSummary: string | null;
   processId: string;
   createdAt: Date;

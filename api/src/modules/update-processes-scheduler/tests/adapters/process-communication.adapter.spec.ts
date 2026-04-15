@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CommunicationSource } from '../../../../../generated/prisma/client';
 import { ProcessCommunicationAdapter } from '../../adapters/process-communication.adapter';
 import type { ProcessApiItem } from '../../types/process-api-item.type';
 
@@ -11,7 +12,7 @@ function makeApiItem(overrides: Partial<ProcessApiItem> = {}): ProcessApiItem {
     data_disponibilizacao: '2026-04-10',
     tipoComunicacao: 'Intimação',
     texto: 'Conteúdo da comunicação processual.',
-    meio: 'Diário Eletrônico',
+    meio: 'D',
     destinatarios: [],
     destinatarioadvogados: [],
     ...overrides,
@@ -41,8 +42,29 @@ describe('ProcessCommunicationAdapter', () => {
         publicationDate: new Date('2026-04-10'),
         communicationType: 'Intimação',
         content: 'Conteúdo da comunicação processual.',
-        source: 'Diário Eletrônico',
+        source: CommunicationSource.DIARIO,
       });
+    });
+
+    it('maps meio="E" to CommunicationSource.EDITAL', () => {
+      const item = makeApiItem({ meio: 'E' });
+      const result = ProcessCommunicationAdapter.toSyncInput(item);
+
+      expect(result.communication.source).toBe(CommunicationSource.EDITAL);
+    });
+
+    it('is case-insensitive when normalizing meio', () => {
+      const item = makeApiItem({ meio: 'd' });
+      const result = ProcessCommunicationAdapter.toSyncInput(item);
+
+      expect(result.communication.source).toBe(CommunicationSource.DIARIO);
+    });
+
+    it('returns null when meio is an unknown value', () => {
+      const item = makeApiItem({ meio: 'XYZ' });
+      const result = ProcessCommunicationAdapter.toSyncInput(item);
+
+      expect(result.communication.source).toBeNull();
     });
 
     // --- hasFinalJudgment detection ---

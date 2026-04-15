@@ -5,12 +5,14 @@ export type ProcessSyncProcessInput = {
   hasFinalJudgment: boolean;
 };
 
+import { CommunicationSource } from '../../../../generated/prisma/client';
+
 export type ProcessSyncCommunicationInput = {
   externalId: number;
   publicationDate: Date;
   communicationType: string;
   content: string;
-  source: string | null;
+  source: CommunicationSource | null;
 };
 
 export type ProcessSyncRecipientInput = {

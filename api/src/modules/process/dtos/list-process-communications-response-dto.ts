@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { CommunicationSource } from '../../../../generated/prisma/client';
 import type { PaginatedResult } from '../repository/contracts/process-repository';
 import type { CommunicationType } from '../types/communication-type';
 import type { ProcessType } from '../types/process-type';
@@ -19,7 +20,7 @@ export interface CommunicationItemDto {
   publicationDate: Date;
   communicationType: string;
   content: string;
-  source: string | null;
+  source: CommunicationSource | null;
   aiSummary: string | null;
   recipients: CommunicationRecipientDto[];
 }
@@ -94,7 +95,7 @@ const communicationItemSchema = z.object({
   publicationDate: z.iso.datetime(),
   communicationType: z.string(),
   content: z.string(),
-  source: z.string().nullable(),
+  source: z.enum(CommunicationSource).nullable(),
   aiSummary: z.string().nullable(),
   recipients: z.array(recipientSchema),
 });

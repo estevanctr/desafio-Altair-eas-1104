@@ -38,15 +38,20 @@ model Process {
   @@map("processes")
 }
 
+enum CommunicationSource {
+  DIARIO
+  EDITAL
+}
+
 model Communication {
-  id                String   @id @default(uuid())
-  externalId        Int      @unique
+  id                String               @id @default(uuid())
+  externalId        Int                  @unique
   publicationDate   DateTime
   communicationType String
-  content           String   @db.Text
-  source            String?
+  content           String               @db.Text
+  source            CommunicationSource?
 
-  aiSummary         String?  @db.Text
+  aiSummary         String?              @db.Text
 
   processId         String
   process           Process  @relation(fields: [processId], references: [id], onDelete: Cascade)
@@ -73,4 +78,50 @@ model Recipient {
   communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
 
   @@map("recipients")
+}
+
+enum CronRunStatus {
+  SUCCESS
+  PARTIAL_FAILURE
+  FAILED
+}
+
+model CronRun {
+  id            String         @id @default(uuid())
+  jobName       String
+  referenceDate String
+  startedAt     DateTime
+  finishedAt    DateTime
+  durationMs    Int
+  status        CronRunStatus
+  fetched       Int            @default(0)
+  created       Int            @default(0)
+  skipped       Int            @default(0)
+  failed        Int            @default(0)
+  errorMessage  String?        @db.Text
+
+  organs        CronRunOrgan[]
+
+  createdAt     DateTime       @default(now())
+
+  @@index([jobName, startedAt])
+  @@index([status])
+  @@map("cron_runs")
+}
+
+model CronRunOrgan {
+  id            String  @id @default(uuid())
+  runId         String
+  run           CronRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  label         String
+  courtAcronym  String
+  organId       Int
+  fetched       Int     @default(0)
+  created       Int     @default(0)
+  skipped       Int     @default(0)
+  failed        Int     @default(0)
+  errorMessage  String? @db.Text
+
+  @@index([runId])
+  @@map("cron_run_organs")
 }

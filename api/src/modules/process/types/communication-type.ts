@@ -1,3 +1,4 @@
+import type { CommunicationSource } from '../../../../generated/prisma/client';
 import type { RecipientType } from './recipient-type';
 
 export type CommunicationType = {
@@ -6,7 +7,7 @@ export type CommunicationType = {
   publicationDate: Date;
   communicationType: string;
   content: string;
-  source: string | null;
+  source: CommunicationSource | null;
   aiSummary: string | null;
   processId: string;
   createdAt: Date;

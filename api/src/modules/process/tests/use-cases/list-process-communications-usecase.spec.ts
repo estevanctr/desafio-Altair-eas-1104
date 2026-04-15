@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { CommunicationSource } from '../../../../../generated/prisma/client';
 import type { IProcessRepository, PaginatedResult } from '../../repository/contracts/process-repository';
 import type { CommunicationType } from '../../types/communication-type';
 import type { ProcessType } from '../../types/process-type';
@@ -50,7 +51,7 @@ describe('ListProcessCommunicationsUseCase', () => {
           publicationDate,
           communicationType: 'INTIMACAO',
           content: 'Texto',
-          source: 'DJE',
+          source: CommunicationSource.DIARIO,
           aiSummary: null,
           processId: existingProcess.id,
           createdAt: new Date('2026-04-10T12:00:00Z'),
@@ -101,7 +102,7 @@ describe('ListProcessCommunicationsUseCase', () => {
       publicationDate,
       communicationType: 'INTIMACAO',
       content: 'Texto',
-      source: 'DJE',
+      source: CommunicationSource.DIARIO,
       aiSummary: null,
     });
     expect(result.items[0].recipients).toEqual([

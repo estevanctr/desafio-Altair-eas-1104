@@ -43,13 +43,15 @@ The module follows a layered architecture with dependency inversion via Nest tok
 
 | Layer | File | Responsibility |
 |---|---|---|
-| **Job / Scheduler** | [jobs/update-processes.job.ts](jobs/update-processes.job.ts) | Triggers the use case on a daily cron (`@Cron('0 1 * * *')` — every day at 01:00), logs start/finish and catches errors so the scheduler stays alive. |
+| **Job / Scheduler** | [jobs/update-processes.job.ts](jobs/update-processes.job.ts) | Triggers the use case on a daily cron (`@Cron('0 1 * * *')` — every day at 01:00), logs start/finish, catches errors so the scheduler stays alive, and persists a `CronRun` record (with per-organ breakdown) through `ICronRunRepository` once the execution is done. |
 | **Use Case** | [use-cases/update-processes-usecase.ts](use-cases/update-processes-usecase.ts) | Orchestrates the flow: iterates the list of organs, calls the gateway, persists via the repository, builds an `UpdateProcessesSummary` and isolates failures per organ. |
 | **Gateway (contract)** | [gateways/contracts/process-communications-gateway.ts](gateways/contracts/process-communications-gateway.ts) | Declares `IProcessCommunicationsGateway`, the contract the use case depends on (dependency inversion). |
 | **Gateway (implementation)** | [gateways/process-communications-gateway.ts](gateways/process-communications-gateway.ts) | Implements paginated HTTP fetching against the PJe Comunica API with rate-limit handling (429 cooldown + retry), retry-with-backoff for 5xx and network/timeout failures, a 30s per-request timeout via `AbortController`, a 1s throttle between pages, and uses `count` from the payload to decide when to stop. |
-| **Adapter** | [adapters/process-communication.adapter.ts](adapters/process-communication.adapter.ts) | Converts the raw API payload (`ProcessApiItem`) into the internal shape (`ProcessSyncInput`), normalizing recipients and detecting "transitou em julgado". |
+| **Adapter** | [adapters/process-communication.adapter.ts](adapters/process-communication.adapter.ts) | Converts the raw API payload (`ProcessApiItem`) into the internal shape (`ProcessSyncInput`), normalizing recipients, detecting "transitou em julgado" and mapping the `meio` field (`D`/`E`) to the `CommunicationSource` enum (unknown values fall back to `null` with a warning log). |
 | **Repository (contract)** | [repository/contracts/process-sync-repository.ts](repository/contracts/process-sync-repository.ts) | Declares `IProcessSyncRepository` with the `persistCommunication` operation. |
 | **Repository (implementation)** | [repository/process-sync-repository.ts](repository/process-sync-repository.ts) | Persists the communication through Prisma inside a single transaction: checks duplicates by `externalId`, upserts the process and creates the communication plus recipients. |
+| **Cron log contract** | [cron-logs/contracts/cron-run-repository.ts](cron-logs/contracts/cron-run-repository.ts) | Declares `ICronRunRepository` with `recordRun`, the operation the job uses to persist a consolidated execution log. |
+| **Cron log implementation** | [cron-logs/cron-run-repository.ts](cron-logs/cron-run-repository.ts) | Persists a `CronRun` row plus its nested `CronRunOrgan` rows through Prisma. Called by the job once per execution. |
 | **Types** | [types/](types/) | Shared types: `ProcessApiItem` (external shape), `ProcessSyncInput` (internal shape) and `ScheduledOrganQuery` (list of monitored organs). |
 | **Module** | [update-processes-scheduler.module.ts](update-processes-scheduler.module.ts) | Registers providers and binds the concrete implementations to the `IProcessCommunicationsGateway` and `IProcessSyncRepository` tokens. |
 
@@ -89,6 +91,8 @@ To monitor a new organ, just add an entry to this array.
    The use case wraps each `persistCommunication` call in its own `try/catch`: if one item fails (e.g., transient DB error or constraint violation), the failure is logged with its `externalId`, the `failed` counter is incremented, and the loop keeps going. Previously persisted items in the same organ are preserved.
 
 6. **Aggregation and logging** — The use case increments `fetched`, `created`, `skipped` and `failed` counters per organ and the totals on `summary`, logging one line per organ plus a final aggregate. The job then logs total duration and consolidated counts.
+
+7. **Run log persistence** — After the use case returns (or throws), the job builds a `CronRunRecord` from the summary and calls `ICronRunRepository.recordRun`, which persists one `cron_runs` row with the consolidated counters, duration, reference date and status (`SUCCESS`, `PARTIAL_FAILURE` or `FAILED`) plus one `cron_run_organs` row per monitored organ (label, court, fetched/created/skipped/failed and the organ-level error message when there is one). The `recordRun` call is itself wrapped in a `try/catch` so an observability failure never takes down the scheduler. `PARTIAL_FAILURE` is emitted whenever at least one organ-level error is reported or `totalFailed > 0`; `FAILED` is reserved for the case where the use case itself throws before producing a summary.
 
 ### Use case contract
 

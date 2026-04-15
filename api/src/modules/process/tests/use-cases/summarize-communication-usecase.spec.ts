@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { CommunicationSource } from '../../../../../generated/prisma/client';
 import type { IAIDriver } from '../../../../drivers/ai/contracts/ai-driver';
 import type { IProcessRepository } from '../../repository/contracts/process-repository';
 import type { CommunicationType } from '../../types/communication-type';
@@ -19,7 +20,7 @@ describe('SummarizeCommunicationUseCase', () => {
     publicationDate: new Date('2026-04-10T12:00:00Z'),
     communicationType: 'INTIMACAO',
     content: 'Decisão determinando intimação da parte autora.',
-    source: 'DJE',
+    source: CommunicationSource.DIARIO,
     aiSummary: null,
     processId: 'process-1',
     createdAt: new Date('2026-04-10T12:00:00Z'),

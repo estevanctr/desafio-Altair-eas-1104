@@ -1,6 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { PrismaClient } from '../../generated/prisma/client';
+import { CommunicationSource, PrismaClient } from '../../generated/prisma/client';
+
+function normalizeSource(value: string | null | undefined): CommunicationSource | null {
+  if (value == null) return null;
+  const v = value.trim().toUpperCase();
+  if (v === 'D' || v === 'DIARIO') return CommunicationSource.DIARIO;
+  if (v === 'E' || v === 'EDITAL') return CommunicationSource.EDITAL;
+  return null;
+}
 
 const prisma = new PrismaClient();
 
@@ -66,7 +74,7 @@ async function seedBatch(batch: ProcessJson[], batchIdx: number, totalBatches: n
         publicationDate: new Date(c.publicationDate),
         communicationType: c.communicationType,
         content: c.content,
-        source: c.source ?? null,
+        source: normalizeSource(c.source),
         processId,
       },
     }));
