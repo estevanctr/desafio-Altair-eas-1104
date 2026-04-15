@@ -4,7 +4,7 @@ This is the central API for the JusCash project. It manages users, authenticatio
 
 ## Project Architecture and Modules
 
-The project is structured into domain-specific modules, following Clean Architecture principles (Controllers → Use Cases → Repositories → Domains). 
+The project is structured into domain-specific modules, following Clean Architecture principles (Controllers → Use Cases → Repositories → Domains).
 
 For an in-depth understanding of how each core module works, please refer to their respective documentation files:
 
@@ -12,6 +12,8 @@ For an in-depth understanding of how each core module works, please refer to the
 - **[Auth Module](src/modules/auth/auth.md)**: Handles stateless authentication via JWT signed with asymmetric keys (RS256).
 - **[Process Module](src/modules/process/process.md)**: Exposes read endpoints for judicial processes and their communications.
 - **[Update Processes Scheduler Module](src/modules/update-processes-scheduler/update-processes-scheduler.md)**: A worker/scheduler that fetches, processes, and stores judicial communications from the public PJe API.
+
+> **Note:** Every module under [src/modules/](src/modules/) ships with its own `<module-name>.md` file that documents the module's responsibilities, endpoints, repository contracts, validation rules, and testing strategy. Always check the module's `.md` file before modifying it.
 
 ### Global Exception Filter
 
@@ -80,13 +82,14 @@ This project includes a custom AI skill configuration located at `[.claude/skill
    cp env.example .env
    ```
 3. Fill in the required environment variables in the `.env` file (e.g., Database credentials, JWT asymmetric keys, etc.).
-   > *Note: For generating RSA keys for the Auth module, check the [Auth Module documentation](src/modules/auth/auth.md).*
+   > _Note: For generating RSA keys for the Auth module, check the [Auth Module documentation](src/modules/auth/auth.md)._
 
 ### Using Docker (Recommended)
 
 The easiest way to run the database and the API together is using Docker Compose.
 
 1. Build and start the containers:
+
    ```bash
    docker-compose up -d --build
    ```
@@ -94,6 +97,7 @@ The easiest way to run the database and the API together is using Docker Compose
 2. The API will be available at `http://localhost:3333` (or the port defined by `API_PORT` in your `.env` file). The Postgres database will be available on the configured port.
 
 3. To view the application logs:
+
    ```bash
    docker-compose logs -f api
    ```
@@ -108,22 +112,26 @@ The easiest way to run the database and the API together is using Docker Compose
 If you prefer to run the application locally (useful for debugging):
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Start only the PostgreSQL database using Docker:
+
    ```bash
    docker-compose up -d postgres
    ```
 
 3. Generate the Prisma Client and run migrations:
+
    ```bash
    npx prisma generate
    # if you need to run migrations: npx prisma migrate deploy
    ```
 
 4. Start the application:
+
    ```bash
    # development
    npm run start
@@ -137,6 +145,7 @@ If you prefer to run the application locally (useful for debugging):
 To populate your database with initial or test data, you can run the Prisma seed script. Make sure your database is running and migrations have been applied before running this command.
 
 If you are using **Docker** and haven't installed dependencies locally, run it inside the API container:
+
 ```bash
 docker-compose exec api npx prisma db seed
 ```
@@ -162,3 +171,4 @@ npm run test:cov
 - [PostgreSQL](https://www.postgresql.org/)
 - [Vitest](https://vitest.dev/)
 - [Docker](https://www.docker.com/)
+```
