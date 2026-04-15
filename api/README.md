@@ -35,6 +35,16 @@ The filter handles three cases:
 
 This keeps controllers and use cases free of try/catch boilerplate — they can throw domain/HTTP exceptions and trust the filter to serialize them safely.
 
+### API Documentation (Swagger)
+
+The API exposes an interactive OpenAPI documentation powered by [Swagger](https://swagger.io/), configured in [main.ts](src/main.ts) via `@nestjs/swagger`. Once the application is running, the Swagger UI is available at:
+
+```
+http://localhost:3333/docs
+```
+
+From there you can explore every endpoint, view request/response schemas (generated automatically from the Zod DTOs via `nestjs-zod`), and try out authenticated routes using the `Authorize` button with a JWT obtained from `POST /auth/login`.
+
 ### Code Style and Linting
 
 The project uses [Biome](https://biomejs.dev/) as a single tool for linting, formatting, and import sorting (replacing ESLint + Prettier). Configuration lives in [biome.json](biome.json) and is tuned for a NestJS backend:
@@ -81,7 +91,7 @@ The easiest way to run the database and the API together is using Docker Compose
    docker-compose up -d --build
    ```
 
-2. The API will be available at `http://localhost:3000` (or the port defined in your `.env` file). The Postgres database will be available on the configured port.
+2. The API will be available at `http://localhost:3333` (or the port defined by `API_PORT` in your `.env` file). The Postgres database will be available on the configured port.
 
 3. To view the application logs:
    ```bash
