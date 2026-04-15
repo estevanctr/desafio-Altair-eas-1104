@@ -4,8 +4,13 @@ Monorepo contendo a API ([api/](api/)) e o front-end web ([web/](web/)).
 
 Ambos os projetos podem acessados pela internet através do dos lins:
 
-Website: https://desafio-altair-eas-1104-1.onrender.com
-API: https://desafio-altair-eas-1104.onrender.com/docs
+## Website:
+
+- https://desafio-altair-eas-1104-1.onrender.com
+
+## API:
+
+- https://desafio-altair-eas-1104.onrender.com/docs
 
 Observação: Como ambos os serviços foram submetidos na camada gratuita do Render, pode
 ser que num primeiro momento a utilização do site (login, cadastro, etc.) se apresente
