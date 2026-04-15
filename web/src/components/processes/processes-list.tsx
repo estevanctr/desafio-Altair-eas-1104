@@ -9,6 +9,7 @@ import {
   type ProcessesFiltersValue,
 } from "@/components/processes/processes-filters";
 import { ProcessCard } from "@/components/processes/process-card";
+import { ProcessesListSkeleton } from "@/components/processes/process-card-skeleton";
 import { ProcessesPagination } from "@/components/processes/processes-pagination";
 import { useEffect, useMemo, useState } from "react";
 
@@ -88,12 +89,8 @@ function ProcessesList() {
 
       <ProcessesFilters value={filters} onChange={setFilters} />
 
-      {isLoading ? (
-        <Card>
-          <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            Carregando comunicações...
-          </CardContent>
-        </Card>
+      {isLoading && !data ? (
+        <ProcessesListSkeleton />
       ) : isError ? (
         <Card>
           <CardContent className="py-8 text-center text-sm text-destructive">

@@ -7,6 +7,7 @@ import { ChevronRight, Clock, Gavel, Scale, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CommunicationCard } from "@/components/processes/communication-card";
+import { ProcessDetailsSkeleton } from "@/components/processes/process-details-skeleton";
 import { ProcessesPagination } from "@/components/processes/processes-pagination";
 import {
   PROCESS_NOT_FOUND,
@@ -126,11 +127,7 @@ function ProcessDetails({ processId }: { processId: string }) {
       <Breadcrumb />
 
       {isLoading && !data ? (
-        <Card>
-          <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            Carregando comunicações...
-          </CardContent>
-        </Card>
+        <ProcessDetailsSkeleton />
       ) : isNotFound ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
