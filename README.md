@@ -2,20 +2,19 @@
 
 Monorepo contendo a API ([api/](api/)) e o front-end web ([web/](web/)).
 
-Ambos os projetos podem acessados pela internet através do dos lins:
+Ambos os projetos podem acessados pela internet através do dos links:
 
-## Website:
+### Website:
 
 - https://desafio-altair-eas-1104-1.onrender.com
 
-## API:
+### API:
 
 - https://desafio-altair-eas-1104.onrender.com/docs
 
-Observação: Como ambos os serviços foram submetidos na camada gratuita do Render, pode
-ser que num primeiro momento a utilização do site (login, cadastro, etc.) se apresente
-lenta por alguns segundos, o que vai ocorrer pelo fato de a api ficar em standby em periodos
-de inatividade. Após 50 segundos de inicialização os servicos responderão normalmente.
+### Observação:
+
+Como ambos os serviços foram submetidos na camada gratuita do Render, pode ser que num primeiro momento a utilização do site (login, cadastro, etc.) se apresente lenta por alguns segundos, o que vai ocorrer pelo fato de a api ficar em standby em periodos de inatividade. Após 50 segundos de inicialização os servicos responderão normalmente.
 
 Apesar deste README principal estar escrito em PT-BR para fins de apresentação inicial, os demais
 READMEs internos estão escritos em inglês, para fins de manter a padronização e consistência do projeto, bem como também otimizar a leitura de contexto por ferramentas da IA.
